@@ -10,6 +10,7 @@
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "InputActionValue.h"
+#include <../../../../../../../Source/Runtime/Engine/Classes/Kismet/GameplayStatics.h>
 
 DEFINE_LOG_CATEGORY(LogTemplateCharacter);
 
@@ -27,7 +28,8 @@ ANetTPSGSCharacter::ANetTPSGSCharacter()
 	bUseControllerRotationRoll = false;
 
 	// Configure character movement
-	GetCharacterMovement()->bOrientRotationToMovement = true; // Character moves in the direction of input...	
+	GetCharacterMovement()->bOrientRotationToMovement = false; // Character moves in the direction of input...	
+	GetCharacterMovement()->bUseControllerDesiredRotation = true;
 	GetCharacterMovement()->RotationRate = FRotator(0.0f, 500.0f, 0.0f); // ...at this rotation rate
 
 	// Note: For faster iteration times these variables, and many more, can be tweaked in the Character Blueprint
@@ -53,6 +55,13 @@ ANetTPSGSCharacter::ANetTPSGSCharacter()
 
 	// Note: The skeletal mesh and anim blueprint references on the Mesh component (inherited from Character) 
 	// are set in the derived blueprint asset named ThirdPersonCharacter (to avoid direct content references in C++)
+
+
+	GunComp = CreateDefaultSubobject<USceneComponent>(TEXT("GunComp"));
+	GunComp->SetupAttachment(GetMesh(), TEXT("hand_rSocket"));
+	GunComp->SetRelativeLocation(FVector(-16.220860, 2.655643, 3.906385));
+	GunComp->SetRelativeRotation(FRotator(17.292647, 82.407187, 7.526243));
+	
 }
 
 void ANetTPSGSCharacter::BeginPlay()
@@ -68,7 +77,14 @@ void ANetTPSGSCharacter::BeginPlay()
 			Subsystem->AddMappingContext(DefaultMappingContext, 0);
 		}
 	}
+
+	// 레벨의 모든 AActor들 중에 Tag가 "Pistol"인 것을 찾아서 
+	//PistolList
+	UGameplayStatics::GetAllActorsOfClassWithTag(GetWorld(), AActor::StaticClass(), TEXT("Pistol"), PistolList);
+
+	int a = 0;
 }
+
 
 //////////////////////////////////////////////////////////////////////////
 // Input
@@ -87,6 +103,10 @@ void ANetTPSGSCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputC
 
 		// Looking
 		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &ANetTPSGSCharacter::Look);
+		
+		EnhancedInputComponent->BindAction(IA_TakePistol, ETriggerEvent::Started, this, &ANetTPSGSCharacter::OnIATakePistol);
+		
+		EnhancedInputComponent->BindAction(IA_Fire, ETriggerEvent::Started, this, &ANetTPSGSCharacter::OnIAFire);
 	}
 	else
 	{
@@ -129,3 +149,125 @@ void ANetTPSGSCharacter::Look(const FInputActionValue& Value)
 		AddControllerPitchInput(LookAxisVector.Y);
 	}
 }
+
+void ANetTPSGSCharacter::OnIATakePistol(const FInputActionValue& value)
+{
+	if (bHasPistol)
+	{
+		// 이미 총을 잡고 있던 상태
+		// 놓기
+		ReleasePistol();
+	}
+	else {
+		// 안잡고 있던 상태
+		// 잡기
+		TakePistol();
+	}
+}
+
+void ANetTPSGSCharacter::AttachPistol(AActor* pistol)
+{
+	UStaticMeshComponent* meshComp = pistol->GetComponentByClass<UStaticMeshComponent>();
+
+	meshComp->SetSimulatePhysics(false);
+
+	meshComp->AttachToComponent(GunComp, FAttachmentTransformRules::SnapToTargetNotIncludingScale);
+}
+
+void ANetTPSGSCharacter::TakePistol()
+{
+	// 만약 총을 이미 잡고있다면 종료
+	if (bHasPistol)
+	{
+		return;
+	}
+
+	for (auto pistol : PistolList)
+	{
+		// 만약 pistol의 오너가 있으면 스킵
+		if (pistol->GetOwner() != nullptr)
+			continue;
+		// 거리 바깥이면(GunSearchDist) 스킵
+		float dist = pistol->GetDistanceTo(this);
+		if (dist > GunSearchDist)
+			continue;
+
+		// 그 pistol을 OwnedPistol로 하고
+		OwnedPistol = pistol;
+		// OwnedPistol의 오너를 나로 하고
+		OwnedPistol->SetOwner(this);
+		// bHasPistol을 true 하고싶다.
+		bHasPistol = true;
+		// 손에 붙이고싶다.
+		AttachPistol(pistol);
+		// 반복문을 종료하고싶다.
+		break;
+	}
+}
+
+void ANetTPSGSCharacter::DetachPistol(AActor* pistol)
+{
+	// 구현!!
+	// 메시 찾고
+	UStaticMeshComponent* meshComp = pistol->GetComponentByClass<UStaticMeshComponent>();
+	if (meshComp)
+	{
+		// 물리 켜고
+		meshComp->SetSimulatePhysics(true);
+		// 디테치!!
+		meshComp->DetachFromComponent(FDetachmentTransformRules::KeepRelativeTransform);
+	}
+
+}
+
+void ANetTPSGSCharacter::ReleasePistol()
+{
+	// 만약 총을 안 잡고있다면 종료
+	if (false == bHasPistol)
+	{
+		return;
+	}
+	// 만약 총을 소유하고 있었다면
+	if (OwnedPistol)
+	{
+		bHasPistol = false;
+		OwnedPistol->SetOwner(nullptr);
+		
+		DetachPistol(OwnedPistol);
+		
+		OwnedPistol = nullptr;
+	}
+}
+
+void ANetTPSGSCharacter::OnIAFire(const FInputActionValue& value)
+{
+	// 총을 집고 있지 않다면 종료
+	if (false == bHasPistol)
+	{
+		return;
+	}
+
+	PlayFireMontage();
+
+	// 카메라 위치에서 카메라 앞방향으로 LineTrace를 해서 닿은 곳에 VFX를 표현하고싶다.
+	FHitResult OutHit;
+	FVector Start = FollowCamera->GetComponentLocation();
+	FVector End = Start + FollowCamera->GetForwardVector() * 100000;
+	FCollisionQueryParams Params;
+	Params.AddIgnoredActor(this);
+
+	bool bHit = GetWorld()->LineTraceSingleByChannel(OutHit, Start, End, ECC_Visibility, Params);
+
+	if (bHit)
+	{
+		UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), BulletImpactVFXFactory, OutHit.ImpactPoint);
+	}
+}
+
+void ANetTPSGSCharacter::PlayFireMontage()
+{
+	PlayAnimMontage(FireMongate);
+}
+
+
+

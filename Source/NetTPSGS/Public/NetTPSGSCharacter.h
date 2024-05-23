@@ -69,5 +69,52 @@ public:
 	FORCEINLINE class USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
 	/** Returns FollowCamera subobject **/
 	FORCEINLINE class UCameraComponent* GetFollowCamera() const { return FollowCamera; }
+
+
+
+	// E키를 누르면 일정거리안에 총을 찾고 있으면 손에 붙이고싶다.
+	// 입력처리
+	UPROPERTY(EditDefaultsOnly, Category = Input)
+	class UInputAction* IA_TakePistol;
+
+	void OnIATakePistol(const FInputActionValue& value);
+
+	// 총이 배치될 컴포넌트
+	UPROPERTY(EditDefaultsOnly, Category = TSP)
+	class USceneComponent* GunComp;
+
+	UPROPERTY()
+	TArray<AActor*> PistolList;
+
+	// 총을 기억하고싶다.
+	bool bHasPistol;
+
+	UPROPERTY()
+	AActor* OwnedPistol;
+	
+	// 총을 검색하고싶다.
+	UPROPERTY(EditDefaultsOnly, Category = TSP)
+	float GunSearchDist = 200;
+
+	void AttachPistol(AActor* pistol);
+	void DetachPistol(AActor* pistol);
+
+	void TakePistol();
+	void ReleasePistol();
+
+	// 총을 쏘고 싶다. 총을 쏜 위치에 VFX를 표현하고싶다.
+	UPROPERTY(EditDefaultsOnly, Category = Input)
+	class UInputAction* IA_Fire;
+
+	void OnIAFire(const FInputActionValue& value);
+
+	UPROPERTY(EditDefaultsOnly, Category = TPS)
+	class UParticleSystem* BulletImpactVFXFactory;
+
+	UPROPERTY(EditDefaultsOnly, Category = TPS)
+	class UAnimMontage* FireMongate;
+
+	void PlayFireMontage();
+
 };
 

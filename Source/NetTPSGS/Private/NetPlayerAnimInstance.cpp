@@ -28,4 +28,12 @@ void UNetPlayerAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 
 	// Me의 이동 속도와 Me의 오른쪽방향을 Dot 해서 Horizontal에 대입하고싶다.
 	Horizontal = FVector::DotProduct(vel, Me->GetActorRightVector());
+
+	// 주인공이 총을 집었다는 정보를 가져오고싶다.
+	bHasPistol = Me->bHasPistol;
+
+	// 주인공의 AimRotation의 Pitch값을 기억하고싶다.
+	PitchAngle = Me->GetBaseAimRotation().Pitch;
+	// PitchAngle값을 -60 ~ 60 안에 가두고 싶다.
+	PitchAngle = FMath::Clamp(-PitchAngle, -60, 60);
 }
