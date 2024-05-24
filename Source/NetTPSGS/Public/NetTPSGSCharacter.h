@@ -116,5 +116,11 @@ public:
 
 	void PlayFireMontage();
 
+	UPROPERTY(EditDefaultsOnly, Category = TPS)
+	TSubclassOf<class UUserWidget> MainUIFactory;
+
+	class UUserWidget* MainUI;
+
+	void InitMainUI();
 };
 

@@ -11,6 +11,7 @@
 #include "EnhancedInputSubsystems.h"
 #include "InputActionValue.h"
 #include <../../../../../../../Source/Runtime/Engine/Classes/Kismet/GameplayStatics.h>
+#include "MainUI.h"
 
 DEFINE_LOG_CATEGORY(LogTemplateCharacter);
 
@@ -82,7 +83,7 @@ void ANetTPSGSCharacter::BeginPlay()
 	//PistolList
 	UGameplayStatics::GetAllActorsOfClassWithTag(GetWorld(), AActor::StaticClass(), TEXT("Pistol"), PistolList);
 
-	int a = 0;
+	InitMainUI();
 }
 
 
@@ -162,6 +163,15 @@ void ANetTPSGSCharacter::OnIATakePistol(const FInputActionValue& value)
 		// 안잡고 있던 상태
 		// 잡기
 		TakePistol();
+	}
+	// 만약 MainUI가 있다면
+	if (MainUI)
+	{
+		//bool isGood = true;
+		//int a = isGood == true ? 1 : 0;
+
+		// 총을 들었을 때 켜주고 그렇지않으면 끄고싶다.
+		MainUI->SetVisibility(bHasPistol ? ESlateVisibility::Visible :  ESlateVisibility::Hidden);
 	}
 }
 
@@ -267,6 +277,17 @@ void ANetTPSGSCharacter::OnIAFire(const FInputActionValue& value)
 void ANetTPSGSCharacter::PlayFireMontage()
 {
 	PlayAnimMontage(FireMongate);
+}
+
+void ANetTPSGSCharacter::InitMainUI()
+{
+	if (MainUIFactory)
+	{
+		MainUI = Cast<UMainUI>(CreateWidget(GetWorld(), MainUIFactory));
+		MainUI->AddToViewport();
+
+		MainUI->SetVisibility(ESlateVisibility::Hidden);
+	}
 }
 
 
