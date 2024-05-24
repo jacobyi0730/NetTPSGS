@@ -37,3 +37,13 @@ void UNetPlayerAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 	// PitchAngle값을 -60 ~ 60 안에 가두고 싶다.
 	PitchAngle = FMath::Clamp(-PitchAngle, -60, 60);
 }
+
+void UNetPlayerAnimInstance::AnimNotify_ReloadFinished()
+{
+	// 나의 오너가 주인공이라면 
+	if (Me)
+	{
+		// 주인공의 OnMyReloadFinished를 호출하고싶다.
+		Me->OnMyReloadFinished();
+	}
+}

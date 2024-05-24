@@ -34,4 +34,7 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = Net)
 	float PitchAngle;
 
+	UFUNCTION()
+	void AnimNotify_ReloadFinished();
+
 };

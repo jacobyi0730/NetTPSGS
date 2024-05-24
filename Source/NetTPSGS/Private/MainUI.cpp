@@ -15,6 +15,7 @@ void UMainUI::SetActiveCrosshair(bool value)
 
 void UMainUI::InitBulletPanel(int max)
 {
+	MaxBullet = max;
 	// 총알 UI를 max 갯수만큼 만들어서 BulletPanel에 붙이고 싶다.
 	for (int i = 0; i < max; i++)
 	{
@@ -36,4 +37,12 @@ void UMainUI::RemoveBullet()
 	}
 
 	BulletPanel->RemoveChildAt(BulletPanel->GetChildrenCount() - 1);
+}
+
+void UMainUI::RemoveAllBullets()
+{
+	for (int i = 0 ; i < MaxBullet && BulletPanel->GetChildrenCount() ; i++)
+	{
+		BulletPanel->RemoveChildAt(0);
+	}
 }

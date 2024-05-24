@@ -33,5 +33,8 @@ public:
 	void AddBullet();
 	// 총알을 삭제하고싶다.
 	void RemoveBullet();
+	// 총알을 전부 삭제하고싶다.
+	void RemoveAllBullets();
+	int32 MaxBullet;
 
 };

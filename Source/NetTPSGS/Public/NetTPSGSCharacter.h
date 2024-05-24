@@ -128,5 +128,17 @@ public:
 	int32 MaxBulletCount = 10;
 	// 현재총알 갯수
 	int32 BulletCount = MaxBulletCount;
+
+
+	// R 버튼을 누르면 재장전 하고싶다.
+	UPROPERTY(EditDefaultsOnly, Category = Input)
+	class UInputAction* IA_Reload;
+
+	void OnIAReload(const FInputActionValue& value);
+
+	void OnMyReloadFinished();
+
+	UPROPERTY(EditDefaultsOnly, Category = TPS)
+	class UAnimMontage* ReloadMontage;
 };
 

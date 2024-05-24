@@ -12,6 +12,7 @@
 #include "InputActionValue.h"
 #include <../../../../../../../Source/Runtime/Engine/Classes/Kismet/GameplayStatics.h>
 #include "MainUI.h"
+#include "NetPlayerAnimInstance.h"
 
 DEFINE_LOG_CATEGORY(LogTemplateCharacter);
 
@@ -108,6 +109,8 @@ void ANetTPSGSCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputC
 		EnhancedInputComponent->BindAction(IA_TakePistol, ETriggerEvent::Started, this, &ANetTPSGSCharacter::OnIATakePistol);
 		
 		EnhancedInputComponent->BindAction(IA_Fire, ETriggerEvent::Started, this, &ANetTPSGSCharacter::OnIAFire);
+		
+		EnhancedInputComponent->BindAction(IA_Reload, ETriggerEvent::Started, this, &ANetTPSGSCharacter::OnIAReload);
 	}
 	else
 	{
@@ -301,6 +304,26 @@ void ANetTPSGSCharacter::InitMainUI()
 
 		MainUI->SetActiveCrosshair(false);
 
+		MainUI->InitBulletPanel(MaxBulletCount);
+	}
+}
+
+void ANetTPSGSCharacter::OnIAReload(const FInputActionValue& value)
+{
+	// 리로드 몽타주 애니메이션을 플레이하고싶다.
+	auto* anim = Cast<UNetPlayerAnimInstance>(GetMesh()->GetAnimInstance());
+	if (anim)
+	{
+		anim->Montage_Play(ReloadMontage);
+	}
+}
+
+void ANetTPSGSCharacter::OnMyReloadFinished()
+{
+	// 총을 다시 최대 갯수로 꽉 채우고싶다.
+	if (MainUI)
+	{
+		MainUI->RemoveAllBullets();
 		MainUI->InitBulletPanel(MaxBulletCount);
 	}
 }
