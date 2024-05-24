@@ -171,7 +171,7 @@ void ANetTPSGSCharacter::OnIATakePistol(const FInputActionValue& value)
 		//int a = isGood == true ? 1 : 0;
 
 		// 총을 들었을 때 켜주고 그렇지않으면 끄고싶다.
-		MainUI->SetVisibility(bHasPistol ? ESlateVisibility::Visible :  ESlateVisibility::Hidden);
+		MainUI->SetActiveCrosshair(bHasPistol);
 	}
 }
 
@@ -257,7 +257,20 @@ void ANetTPSGSCharacter::OnIAFire(const FInputActionValue& value)
 		return;
 	}
 
+	// 만약 BulletCount가 0이하라면 종료
+	if (BulletCount <= 0)
+	{
+		return;
+	}
+	BulletCount--;
+
 	PlayFireMontage();
+
+	// 만약 MainUI가 있으면 총알을 하나씩 제거하고싶다.
+	if (MainUI)
+	{
+		MainUI->RemoveBullet();
+	}
 
 	// 카메라 위치에서 카메라 앞방향으로 LineTrace를 해서 닿은 곳에 VFX를 표현하고싶다.
 	FHitResult OutHit;
@@ -286,7 +299,9 @@ void ANetTPSGSCharacter::InitMainUI()
 		MainUI = Cast<UMainUI>(CreateWidget(GetWorld(), MainUIFactory));
 		MainUI->AddToViewport();
 
-		MainUI->SetVisibility(ESlateVisibility::Hidden);
+		MainUI->SetActiveCrosshair(false);
+
+		MainUI->InitBulletPanel(MaxBulletCount);
 	}
 }
 

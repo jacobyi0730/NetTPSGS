@@ -119,8 +119,14 @@ public:
 	UPROPERTY(EditDefaultsOnly, Category = TPS)
 	TSubclassOf<class UUserWidget> MainUIFactory;
 
-	class UUserWidget* MainUI;
+	class UMainUI* MainUI;
 
 	void InitMainUI();
+
+	// ÃÖ´ëÃÑ¾Ë °¹¼ö
+	UPROPERTY(EditDefaultsOnly, Category = TPS)
+	int32 MaxBulletCount = 10;
+	// ÇöÀçÃÑ¾Ë °¹¼ö
+	int32 BulletCount = MaxBulletCount;
 };
 
