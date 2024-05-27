@@ -36,6 +36,9 @@ void UNetPlayerAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 	PitchAngle = Me->GetBaseAimRotation().GetNormalized().Pitch;
 	// PitchAngle값을 -60 ~ 60 안에 가두고 싶다.
 	PitchAngle = FMath::Clamp(-PitchAngle, -60, 60);
+
+	// 주인공의 bDie를 가져오고싶다.
+	bDie = Me->bDie;
 }
 
 void UNetPlayerAnimInstance::AnimNotify_ReloadFinished()

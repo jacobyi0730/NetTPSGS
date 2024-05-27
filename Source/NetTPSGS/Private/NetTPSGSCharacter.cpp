@@ -254,7 +254,8 @@ void ANetTPSGSCharacter::DetachPistol(AActor* pistol)
 void ANetTPSGSCharacter::ReleasePistol()
 {
 	// 만약 총을 안 잡고있다면 종료
-	if (false == bHasPistol)
+	// 재장전 중이라면 종료
+	if (false == bHasPistol || bReloading)
 	{
 		return;
 	}
@@ -273,16 +274,13 @@ void ANetTPSGSCharacter::ReleasePistol()
 void ANetTPSGSCharacter::OnIAFire(const FInputActionValue& value)
 {
 	// 총을 집고 있지 않다면 종료
-	if (false == bHasPistol)
+	// 만약 BulletCount가 0이하라면 종료
+	// 재장전 중이라면 종료
+	if (false == bHasPistol || BulletCount <= 0 || bReloading)
 	{
 		return;
 	}
 
-	// 만약 BulletCount가 0이하라면 종료
-	if (BulletCount <= 0)
-	{
-		return;
-	}
 	BulletCount--;
 
 	PlayFireMontage();
@@ -335,6 +333,13 @@ void ANetTPSGSCharacter::InitMainUI()
 
 void ANetTPSGSCharacter::OnIAReload(const FInputActionValue& value)
 {
+	// bReloading이 true라면 종료
+	if (bReloading || false == bHasPistol)
+	{
+		return;
+	}
+	bReloading = true;
+
 	// 리로드 몽타주 애니메이션을 플레이하고싶다.
 	auto* anim = Cast<UNetPlayerAnimInstance>(GetMesh()->GetAnimInstance());
 	if (anim)
@@ -346,6 +351,7 @@ void ANetTPSGSCharacter::OnIAReload(const FInputActionValue& value)
 void ANetTPSGSCharacter::OnMyReloadFinished()
 {
 	// 총을 다시 최대 갯수로 꽉 채우고싶다.
+	bReloading = false;
 	if (MainUI)
 	{
 		MainUI->RemoveAllBullets();
@@ -369,8 +375,11 @@ void ANetTPSGSCharacter::SetHP(int value)
 void ANetTPSGSCharacter::OnMyTakeDamage()
 {
 	HP = HP - 1;
-	
 	// 만약 HP가 0이하면 죽음처리
+	if (HP <= 0)
+	{
+		bDie = true;
+	}
 }
 
 

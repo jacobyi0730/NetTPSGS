@@ -154,8 +154,6 @@ public:
 	int32 GetHP();
 	void SetHP(int value);
 
-
-
 	// 위젯 컴포넌트 만들어서 UI반영해서 보이게 하고싶다.
 	UPROPERTY(EditDefaultsOnly, Category = TPS)
 	class UWidgetComponent* HPComp;
@@ -165,6 +163,10 @@ public:
 	class UHPWidget* HpUI;
 
 	void OnMyTakeDamage();
+
+	bool bDie;
+
+	bool bReloading;
 
 };
 
