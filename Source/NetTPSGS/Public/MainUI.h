@@ -37,4 +37,10 @@ public:
 	void RemoveAllBullets();
 	int32 MaxBullet;
 
+	UPROPERTY(EditDefaultsOnly, meta=(BindWidget))
+	class UProgressBar* HPBar;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = TPS)
+	float HP = 1.0f;
+
 };

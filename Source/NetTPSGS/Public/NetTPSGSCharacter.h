@@ -140,5 +140,31 @@ public:
 
 	UPROPERTY(EditDefaultsOnly, Category = TPS)
 	class UAnimMontage* ReloadMontage;
+
+
+	// 체력을 만들고 관리하고싶다.
+	// 최대체력, 현재체력, UI
+	UPROPERTY(EditDefaultsOnly, Category = TPS)
+	int32 MaxHP = 3;
+
+	UPROPERTY(EditDefaultsOnly, Category = TPS)
+	int32 _HP = MaxHP;
+
+	__declspec(property(get = GetHP, put = SetHP)) int32 HP;
+	int32 GetHP();
+	void SetHP(int value);
+
+
+
+	// 위젯 컴포넌트 만들어서 UI반영해서 보이게 하고싶다.
+	UPROPERTY(EditDefaultsOnly, Category = TPS)
+	class UWidgetComponent* HPComp;
+
+	// 태어날 때 HPComp의 위젯을 가져와서 기억하고싶다.
+	UPROPERTY()
+	class UHPWidget* HpUI;
+
+	void OnMyTakeDamage();
+
 };
 

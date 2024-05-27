@@ -13,6 +13,8 @@
 #include <../../../../../../../Source/Runtime/Engine/Classes/Kismet/GameplayStatics.h>
 #include "MainUI.h"
 #include "NetPlayerAnimInstance.h"
+#include <../../../../../../../Source/Runtime/UMG/Public/Components/WidgetComponent.h>
+#include "HPWidget.h"
 
 DEFINE_LOG_CATEGORY(LogTemplateCharacter);
 
@@ -63,7 +65,19 @@ ANetTPSGSCharacter::ANetTPSGSCharacter()
 	GunComp->SetupAttachment(GetMesh(), TEXT("hand_rSocket"));
 	GunComp->SetRelativeLocation(FVector(-16.220860, 2.655643, 3.906385));
 	GunComp->SetRelativeRotation(FRotator(17.292647, 82.407187, 7.526243));
-	
+
+
+	HPComp = CreateDefaultSubobject<UWidgetComponent>(TEXT("HPComp"));
+	HPComp->SetupAttachment(RootComponent);
+
+	ConstructorHelpers::FClassFinder<UUserWidget> TempWidget(TEXT("/Script/UMGEditor.WidgetBlueprint'/Game/Net/UI/WBP_HPWidget.WBP_HPWidget_C'"));
+
+	if (TempWidget.Succeeded())
+	{
+		HPComp->SetWidgetClass(TempWidget.Class);
+		HPComp->SetRelativeLocation(FVector(0, 0, 120));
+		HPComp->SetDrawSize(FVector2D(150, 20));
+	}
 }
 
 void ANetTPSGSCharacter::BeginPlay()
@@ -85,6 +99,10 @@ void ANetTPSGSCharacter::BeginPlay()
 	UGameplayStatics::GetAllActorsOfClassWithTag(GetWorld(), AActor::StaticClass(), TEXT("Pistol"), PistolList);
 
 	InitMainUI();
+
+	HpUI = Cast<UHPWidget>(HPComp->GetWidget());
+
+	HP = MaxHP;
 }
 
 
@@ -287,6 +305,13 @@ void ANetTPSGSCharacter::OnIAFire(const FInputActionValue& value)
 	if (bHit)
 	{
 		UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), BulletImpactVFXFactory, OutHit.ImpactPoint);
+
+		// 맞은상대가 플레이어라면
+		auto otherPlayer = Cast<ANetTPSGSCharacter>(OutHit.GetActor());
+		if (otherPlayer)
+		{
+			otherPlayer->OnMyTakeDamage();
+		}
 	}
 }
 
@@ -325,7 +350,27 @@ void ANetTPSGSCharacter::OnMyReloadFinished()
 	{
 		MainUI->RemoveAllBullets();
 		MainUI->InitBulletPanel(MaxBulletCount);
+		BulletCount = MaxBulletCount;
 	}
+}
+
+int32 ANetTPSGSCharacter::GetHP()
+{
+	return _HP;
+}
+
+void ANetTPSGSCharacter::SetHP(int value)
+{
+	_HP = value;
+	// UI에 반영
+	HpUI->UpdateHPBar((float)_HP / MaxHP);
+}
+
+void ANetTPSGSCharacter::OnMyTakeDamage()
+{
+	HP = HP - 1;
+	
+	// 만약 HP가 0이하면 죽음처리
 }
 
 
