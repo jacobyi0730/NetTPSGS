@@ -47,6 +47,9 @@ class ANetTPSGSCharacter : public ACharacter
 public:
 	ANetTPSGSCharacter();
 	
+	virtual void Tick( float DeltaSeconds ) override;
+
+	void PrintNetInfo();
 
 protected:
 

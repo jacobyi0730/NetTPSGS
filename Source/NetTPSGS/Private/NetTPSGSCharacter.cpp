@@ -23,6 +23,8 @@ DEFINE_LOG_CATEGORY(LogTemplateCharacter);
 
 ANetTPSGSCharacter::ANetTPSGSCharacter()
 {
+	PrimaryActorTick.bCanEverTick = true;
+
 	// Set size for collision capsule
 	GetCapsuleComponent()->InitCapsuleSize(42.f, 96.0f);
 		
@@ -78,6 +80,30 @@ ANetTPSGSCharacter::ANetTPSGSCharacter()
 		HPComp->SetRelativeLocation(FVector(0, 0, 120));
 		HPComp->SetDrawSize(FVector2D(150, 20));
 	}
+}
+
+void ANetTPSGSCharacter::Tick(float DeltaSeconds)
+{
+	Super::Tick(DeltaSeconds);
+
+	PrintNetInfo();
+}
+
+void ANetTPSGSCharacter::PrintNetInfo()
+{
+	// localRole
+	FString localRole = UEnum::GetValueAsString(GetLocalRole());
+	// remoteRole
+	FString remoteRole = UEnum::GetValueAsString(GetRemoteRole());
+	// owner
+	FString owner = GetOwner() ? GetOwner()->GetName() : "";
+	// netConn
+	FString netConn = GetNetConnection() ? "Valid" : "Invalid";
+
+	FString str = FString::Printf(TEXT("localRole : %s\nremoteRole : %s\nowner : %s\nnetConn : %s"), *localRole, *remoteRole, *owner, *netConn);
+
+	FVector loc = GetActorLocation() + FVector(0, 0, 50);
+	DrawDebugString(GetWorld(), loc, str, nullptr, FColor::White, 0, true);
 }
 
 void ANetTPSGSCharacter::BeginPlay()
