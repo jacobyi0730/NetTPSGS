@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+ï»¿// Fill out your copyright notice in the Description page of Project Settings.
 
 #pragma once
 
@@ -25,7 +25,7 @@ public:
 
 	void PrintNetInfo();
 
-	// ¸Ş½Ã¸¦ ¸¸µé¾î¼­ ºÙÀÌ°í½Í´Ù.
+	// ë©”ì‹œë¥¼ ë§Œë“¤ì–´ì„œ ë¶™ì´ê³ ì‹¶ë‹¤.
 	UPROPERTY(EditDefaultsOnly, Category = TPS)
 	class UStaticMeshComponent* MeshComp;
 
@@ -35,8 +35,8 @@ public:
 	float CheckDist = 200;
 	void CheckOwner();
 
-	// ¼­¹ö¿¡¼­ È¸ÀüÀ» ÇÏ°í ±× È¸Àü°ªÀ» ±â¾ïÇÏ°í½Í´Ù.
-	// Å¬¶ó¿¡¼­ ±× È¸Àü°ªÀ» ¹İ¿µÇÏ°í½Í´Ù.
+	// ì„œë²„ì—ì„œ íšŒì „ì„ í•˜ê³  ê·¸ íšŒì „ê°’ì„ ê¸°ì–µí•˜ê³ ì‹¶ë‹¤.
+	// í´ë¼ì—ì„œ ê·¸ íšŒì „ê°’ì„ ë°˜ì˜í•˜ê³ ì‹¶ë‹¤.
 	UPROPERTY(ReplicatedUsing=OnRep_RotYaw)
 	float RotYaw = 0;
 
@@ -49,7 +49,7 @@ public:
 	float LastTime = 0;
 
 
-	// ÀçÁúÀÇ »öÀ» º¯°æÇÏ°í½Í´Ù.
+	// ì¬ì§ˆì˜ ìƒ‰ì„ ë³€ê²½í•˜ê³ ì‹¶ë‹¤.
 	UPROPERTY()
 	class UMaterialInstanceDynamic* Mat;
 

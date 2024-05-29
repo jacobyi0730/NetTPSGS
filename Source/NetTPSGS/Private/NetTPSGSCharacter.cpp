@@ -1,4 +1,4 @@
-// Copyright Epic Games, Inc. All Rights Reserved.
+ï»¿// Copyright Epic Games, Inc. All Rights Reserved.
 
 #include "NetTPSGSCharacter.h"
 #include "Engine/LocalPlayer.h"
@@ -15,6 +15,7 @@
 #include "NetPlayerAnimInstance.h"
 #include <../../../../../../../Source/Runtime/UMG/Public/Components/WidgetComponent.h>
 #include "HPWidget.h"
+#include "Net/UnrealNetwork.h"
 
 DEFINE_LOG_CATEGORY(LogTemplateCharacter);
 
@@ -120,7 +121,7 @@ void ANetTPSGSCharacter::BeginPlay()
 		}
 	}
 
-	// ·¹º§ÀÇ ¸ğµç AActorµé Áß¿¡ Tag°¡ "Pistol"ÀÎ °ÍÀ» Ã£¾Æ¼­ 
+	// ë ˆë²¨ì˜ ëª¨ë“  AActorë“¤ ì¤‘ì— Tagê°€ "Pistol"ì¸ ê²ƒì„ ì°¾ì•„ì„œ 
 	//PistolList
 	UGameplayStatics::GetAllActorsOfClassWithTag(GetWorld(), AActor::StaticClass(), TEXT("Pistol"), PistolList);
 
@@ -202,23 +203,14 @@ void ANetTPSGSCharacter::OnIATakePistol(const FInputActionValue& value)
 {
 	if (bHasPistol)
 	{
-		// ÀÌ¹Ì ÃÑÀ» Àâ°í ÀÖ´ø »óÅÂ
-		// ³õ±â
+		// ì´ë¯¸ ì´ì„ ì¡ê³  ìˆë˜ ìƒíƒœ
+		// ë†“ê¸°
 		ReleasePistol();
 	}
 	else {
-		// ¾ÈÀâ°í ÀÖ´ø »óÅÂ
-		// Àâ±â
+		// ì•ˆì¡ê³  ìˆë˜ ìƒíƒœ
+		// ì¡ê¸°
 		TakePistol();
-	}
-	// ¸¸¾à MainUI°¡ ÀÖ´Ù¸é
-	if (MainUI)
-	{
-		//bool isGood = true;
-		//int a = isGood == true ? 1 : 0;
-
-		// ÃÑÀ» µé¾úÀ» ¶§ ÄÑÁÖ°í ±×·¸Áö¾ÊÀ¸¸é ²ô°í½Í´Ù.
-		MainUI->SetActiveCrosshair(bHasPistol);
 	}
 }
 
@@ -229,49 +221,36 @@ void ANetTPSGSCharacter::AttachPistol(AActor* pistol)
 	meshComp->SetSimulatePhysics(false);
 
 	meshComp->AttachToComponent(GunComp, FAttachmentTransformRules::SnapToTargetNotIncludingScale);
+
+	// ë§Œì•½ MainUIê°€ ìˆë‹¤ë©´
+	if (IsLocallyControlled() && MainUI)
+	{
+		// ì´ì„ ë“¤ì—ˆì„ ë•Œ ì¼œì£¼ê³  ê·¸ë ‡ì§€ì•Šìœ¼ë©´ ë„ê³ ì‹¶ë‹¤.
+		MainUI->SetActiveCrosshair(true);
+	}
+
 }
 
 void ANetTPSGSCharacter::TakePistol()
 {
-	// ¸¸¾à ÃÑÀ» ÀÌ¹Ì Àâ°íÀÖ´Ù¸é Á¾·á
+	// ë§Œì•½ ì´ì„ ì´ë¯¸ ì¡ê³ ìˆë‹¤ë©´ ì¢…ë£Œ
 	if (bHasPistol)
 	{
 		return;
 	}
-
-	for (auto pistol : PistolList)
-	{
-		// ¸¸¾à pistolÀÇ ¿À³Ê°¡ ÀÖÀ¸¸é ½ºÅµ
-		if (pistol->GetOwner() != nullptr)
-			continue;
-		// °Å¸® ¹Ù±ùÀÌ¸é(GunSearchDist) ½ºÅµ
-		float dist = pistol->GetDistanceTo(this);
-		if (dist > GunSearchDist)
-			continue;
-
-		// ±× pistolÀ» OwnedPistol·Î ÇÏ°í
-		OwnedPistol = pistol;
-		// OwnedPistolÀÇ ¿À³Ê¸¦ ³ª·Î ÇÏ°í
-		OwnedPistol->SetOwner(this);
-		// bHasPistolÀ» true ÇÏ°í½Í´Ù.
-		bHasPistol = true;
-		// ¼Õ¿¡ ºÙÀÌ°í½Í´Ù.
-		AttachPistol(pistol);
-		// ¹İº¹¹®À» Á¾·áÇÏ°í½Í´Ù.
-		break;
-	}
+	ServerRPC_TakePistol();
 }
 
 void ANetTPSGSCharacter::DetachPistol(AActor* pistol)
 {
-	// ±¸Çö!!
-	// ¸Ş½Ã Ã£°í
+	// êµ¬í˜„!!
+	// ë©”ì‹œ ì°¾ê³ 
 	UStaticMeshComponent* meshComp = pistol->GetComponentByClass<UStaticMeshComponent>();
 	if (meshComp)
 	{
-		// ¹°¸® ÄÑ°í
+		// ë¬¼ë¦¬ ì¼œê³ 
 		meshComp->SetSimulatePhysics(true);
-		// µğÅ×Ä¡!!
+		// ë””í…Œì¹˜!!
 		meshComp->DetachFromComponent(FDetachmentTransformRules::KeepRelativeTransform);
 	}
 
@@ -279,64 +258,26 @@ void ANetTPSGSCharacter::DetachPistol(AActor* pistol)
 
 void ANetTPSGSCharacter::ReleasePistol()
 {
-	// ¸¸¾à ÃÑÀ» ¾È Àâ°íÀÖ´Ù¸é Á¾·á
-	// ÀçÀåÀü ÁßÀÌ¶ó¸é Á¾·á
+	// ë§Œì•½ ì´ì„ ì•ˆ ì¡ê³ ìˆë‹¤ë©´ ì¢…ë£Œ
+	// ì¬ì¥ì „ ì¤‘ì´ë¼ë©´ ì¢…ë£Œ
 	if (false == bHasPistol || bReloading)
 	{
 		return;
 	}
-	// ¸¸¾à ÃÑÀ» ¼ÒÀ¯ÇÏ°í ÀÖ¾ú´Ù¸é
-	if (OwnedPistol)
-	{
-		bHasPistol = false;
-		OwnedPistol->SetOwner(nullptr);
-		
-		DetachPistol(OwnedPistol);
-		
-		OwnedPistol = nullptr;
-	}
+
+	ServerRPC_ReleasePistol();	// í´ë¼ê°€ ì„œë²„ì—ê²Œ ì´ì„ ë†“ì•„ì£¼ì„¸ìš”. ìš”ì²­
 }
 
 void ANetTPSGSCharacter::OnIAFire(const FInputActionValue& value)
 {
-	// ÃÑÀ» Áı°í ÀÖÁö ¾Ê´Ù¸é Á¾·á
-	// ¸¸¾à BulletCount°¡ 0ÀÌÇÏ¶ó¸é Á¾·á
-	// ÀçÀåÀü ÁßÀÌ¶ó¸é Á¾·á
+	// ì´ì„ ì§‘ê³  ìˆì§€ ì•Šë‹¤ë©´ ì¢…ë£Œ
+	// ë§Œì•½ BulletCountê°€ 0ì´í•˜ë¼ë©´ ì¢…ë£Œ
+	// ì¬ì¥ì „ ì¤‘ì´ë¼ë©´ ì¢…ë£Œ
 	if (false == bHasPistol || BulletCount <= 0 || bReloading)
 	{
 		return;
 	}
-
-	BulletCount--;
-
-	PlayFireMontage();
-
-	// ¸¸¾à MainUI°¡ ÀÖÀ¸¸é ÃÑ¾ËÀ» ÇÏ³ª¾¿ Á¦°ÅÇÏ°í½Í´Ù.
-	if (MainUI)
-	{
-		MainUI->RemoveBullet();
-	}
-
-	// Ä«¸Ş¶ó À§Ä¡¿¡¼­ Ä«¸Ş¶ó ¾Õ¹æÇâÀ¸·Î LineTrace¸¦ ÇØ¼­ ´êÀº °÷¿¡ VFX¸¦ Ç¥ÇöÇÏ°í½Í´Ù.
-	FHitResult OutHit;
-	FVector Start = FollowCamera->GetComponentLocation();
-	FVector End = Start + FollowCamera->GetForwardVector() * 100000;
-	FCollisionQueryParams Params;
-	Params.AddIgnoredActor(this);
-
-	bool bHit = GetWorld()->LineTraceSingleByChannel(OutHit, Start, End, ECC_Visibility, Params);
-
-	if (bHit)
-	{
-		UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), BulletImpactVFXFactory, OutHit.ImpactPoint);
-
-		// ¸ÂÀº»ó´ë°¡ ÇÃ·¹ÀÌ¾î¶ó¸é
-		auto otherPlayer = Cast<ANetTPSGSCharacter>(OutHit.GetActor());
-		if (otherPlayer)
-		{
-			otherPlayer->OnMyTakeDamage();
-		}
-	}
+	ServerRPC_Fire();
 }
 
 void ANetTPSGSCharacter::PlayFireMontage()
@@ -346,7 +287,7 @@ void ANetTPSGSCharacter::PlayFireMontage()
 
 void ANetTPSGSCharacter::InitMainUI()
 {
-	if (MainUIFactory)
+	if (IsLocallyControlled() && MainUIFactory)
 	{
 		MainUI = Cast<UMainUI>(CreateWidget(GetWorld(), MainUIFactory));
 		MainUI->AddToViewport();
@@ -359,14 +300,14 @@ void ANetTPSGSCharacter::InitMainUI()
 
 void ANetTPSGSCharacter::OnIAReload(const FInputActionValue& value)
 {
-	// bReloadingÀÌ true¶ó¸é Á¾·á
+	// bReloadingì´ trueë¼ë©´ ì¢…ë£Œ
 	if (bReloading || false == bHasPistol)
 	{
 		return;
 	}
 	bReloading = true;
 
-	// ¸®·Îµå ¸ùÅ¸ÁÖ ¾Ö´Ï¸ŞÀÌ¼ÇÀ» ÇÃ·¹ÀÌÇÏ°í½Í´Ù.
+	// ë¦¬ë¡œë“œ ëª½íƒ€ì£¼ ì• ë‹ˆë©”ì´ì…˜ì„ í”Œë ˆì´í•˜ê³ ì‹¶ë‹¤.
 	auto* anim = Cast<UNetPlayerAnimInstance>(GetMesh()->GetAnimInstance());
 	if (anim)
 	{
@@ -376,7 +317,7 @@ void ANetTPSGSCharacter::OnIAReload(const FInputActionValue& value)
 
 void ANetTPSGSCharacter::OnMyReloadFinished()
 {
-	// ÃÑÀ» ´Ù½Ã ÃÖ´ë °¹¼ö·Î ²Ë Ã¤¿ì°í½Í´Ù.
+	// ì´ì„ ë‹¤ì‹œ ìµœëŒ€ ê°¯ìˆ˜ë¡œ ê½‰ ì±„ìš°ê³ ì‹¶ë‹¤.
 	bReloading = false;
 	if (MainUI)
 	{
@@ -394,18 +335,122 @@ int32 ANetTPSGSCharacter::GetHP()
 void ANetTPSGSCharacter::SetHP(int value)
 {
 	_HP = value;
-	// UI¿¡ ¹İ¿µ
+	// UIì— ë°˜ì˜
 	HpUI->UpdateHPBar((float)_HP / MaxHP);
 }
 
 void ANetTPSGSCharacter::OnMyTakeDamage()
 {
 	HP = HP - 1;
-	// ¸¸¾à HP°¡ 0ÀÌÇÏ¸é Á×À½Ã³¸®
+	// ë§Œì•½ HPê°€ 0ì´í•˜ë©´ ì£½ìŒì²˜ë¦¬
 	if (HP <= 0)
 	{
 		bDie = true;
 	}
+}
+
+
+
+void ANetTPSGSCharacter::ServerRPC_TakePistol_Implementation()
+{
+	for (auto pistol : PistolList)
+	{
+		// ë§Œì•½ pistolì˜ ì˜¤ë„ˆê°€ ìˆìœ¼ë©´ ìŠ¤í‚µ
+		if (pistol->GetOwner() != nullptr)
+			continue;
+		// ê±°ë¦¬ ë°”ê¹¥ì´ë©´(GunSearchDist) ìŠ¤í‚µ
+		float dist = pistol->GetDistanceTo(this);
+		if (dist > GunSearchDist)
+			continue;
+
+		// ê·¸ pistolì„ OwnedPistolë¡œ í•˜ê³ 
+		OwnedPistol = pistol;
+		// OwnedPistolì˜ ì˜¤ë„ˆë¥¼ ë‚˜ë¡œ í•˜ê³ 
+		OwnedPistol->SetOwner(this);
+		// bHasPistolì„ true í•˜ê³ ì‹¶ë‹¤.
+		bHasPistol = true;
+
+		MultiRPC_TakePistol(pistol);
+		// ë°˜ë³µë¬¸ì„ ì¢…ë£Œí•˜ê³ ì‹¶ë‹¤.
+		break;
+	}
+}
+
+void ANetTPSGSCharacter::MultiRPC_TakePistol_Implementation(AActor* pistolActor)
+{
+	// ì†ì— ë¶™ì´ê³ ì‹¶ë‹¤.
+	AttachPistol(pistolActor);
+}
+
+void ANetTPSGSCharacter::ServerRPC_ReleasePistol_Implementation()
+{
+	// ë§Œì•½ ì´ì„ ì†Œìœ í•˜ê³  ìˆì—ˆë‹¤ë©´
+	if (OwnedPistol)
+	{
+		MultiRPC_ReleasePistol(OwnedPistol);
+
+		bHasPistol = false;
+		OwnedPistol->SetOwner(nullptr);
+		OwnedPistol = nullptr;
+	}
+}
+
+void ANetTPSGSCharacter::MultiRPC_ReleasePistol_Implementation(AActor* pistolActor)
+{
+	DetachPistol(pistolActor);
+
+	// UIë¥¼ ì•ˆë³´ì´ê²Œ í•˜ê³ ì‹¶ë‹¤.
+	if (IsLocallyControlled() && MainUI)
+	{
+		MainUI->SetActiveCrosshair(false);
+	}
+}
+
+void ANetTPSGSCharacter::ServerRPC_Fire_Implementation()
+{
+	BulletCount--;
+
+	// ì¹´ë©”ë¼ ìœ„ì¹˜ì—ì„œ ì¹´ë©”ë¼ ì•ë°©í–¥ìœ¼ë¡œ LineTraceë¥¼ í•´ì„œ ë‹¿ì€ ê³³ì— VFXë¥¼ í‘œí˜„í•˜ê³ ì‹¶ë‹¤.
+	FHitResult OutHit;
+	FVector Start = FollowCamera->GetComponentLocation();
+	FVector End = Start + FollowCamera->GetForwardVector() * 100000;
+	FCollisionQueryParams Params;
+	Params.AddIgnoredActor(this);
+
+	bool bHit = GetWorld()->LineTraceSingleByChannel(OutHit, Start, End, ECC_Visibility, Params);
+
+	MultiRPC_Fire(BulletCount, bHit, OutHit);
+}
+
+void ANetTPSGSCharacter::MultiRPC_Fire_Implementation(int32 newBulletCount, bool bHit, FHitResult OutHit)
+{
+	BulletCount = newBulletCount;
+
+	PlayFireMontage();
+
+	// ë§Œì•½ MainUIê°€ ìˆìœ¼ë©´ ì´ì•Œì„ í•˜ë‚˜ì”© ì œê±°í•˜ê³ ì‹¶ë‹¤.
+	if (IsLocallyControlled() && MainUI)
+	{
+		MainUI->RemoveBullet();
+	}
+	if (bHit)
+	{
+		UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), BulletImpactVFXFactory, OutHit.ImpactPoint);
+
+		// ë§ì€ìƒëŒ€ê°€ í”Œë ˆì´ì–´ë¼ë©´
+		auto otherPlayer = Cast<ANetTPSGSCharacter>(OutHit.GetActor());
+		if (otherPlayer)
+		{
+			otherPlayer->OnMyTakeDamage();
+		}
+	}
+}
+
+void ANetTPSGSCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(ANetTPSGSCharacter, bHasPistol);
 }
 
 

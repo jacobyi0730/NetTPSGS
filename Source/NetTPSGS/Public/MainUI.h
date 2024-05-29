@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+ï»¿// Fill out your copyright notice in the Description page of Project Settings.
 
 #pragma once
 
@@ -27,13 +27,13 @@ public:
 	// ---------------------
 	void SetActiveCrosshair(bool value);
 
-	// ÅÂ¾î³¯ ¶§ ÃÑ¾ËÀ» ¼¼ÆÃÇÏ°í½Í´Ù.
+	// íƒœì–´ë‚  ë•Œ ì´ì•Œì„ ì„¸íŒ…í•˜ê³ ì‹¶ë‹¤.
 	void InitBulletPanel(int max);
-	// ÃÑ¾ËÀ» Ãß°¡ÇÏ°í½Í´Ù.
+	// ì´ì•Œì„ ì¶”ê°€í•˜ê³ ì‹¶ë‹¤.
 	void AddBullet();
-	// ÃÑ¾ËÀ» »èÁ¦ÇÏ°í½Í´Ù.
+	// ì´ì•Œì„ ì‚­ì œí•˜ê³ ì‹¶ë‹¤.
 	void RemoveBullet();
-	// ÃÑ¾ËÀ» ÀüºÎ »èÁ¦ÇÏ°í½Í´Ù.
+	// ì´ì•Œì„ ì „ë¶€ ì‚­ì œí•˜ê³ ì‹¶ë‹¤.
 	void RemoveAllBullets();
 	int32 MaxBullet;
 

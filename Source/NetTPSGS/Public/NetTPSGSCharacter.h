@@ -1,4 +1,4 @@
-// Copyright Epic Games, Inc. All Rights Reserved.
+ï»¿// Copyright Epic Games, Inc. All Rights Reserved.
 
 #pragma once
 
@@ -75,27 +75,28 @@ public:
 
 
 
-	// EÅ°¸¦ ´©¸£¸é ÀÏÁ¤°Å¸®¾È¿¡ ÃÑÀ» Ã£°í ÀÖÀ¸¸é ¼Õ¿¡ ºÙÀÌ°í½Í´Ù.
-	// ÀÔ·ÂÃ³¸®
+	// Eí‚¤ë¥¼ ëˆ„ë¥´ë©´ ì¼ì •ê±°ë¦¬ì•ˆì— ì´ì„ ì°¾ê³  ìˆìœ¼ë©´ ì†ì— ë¶™ì´ê³ ì‹¶ë‹¤.
+	// ì…ë ¥ì²˜ë¦¬
 	UPROPERTY(EditDefaultsOnly, Category = Input)
 	class UInputAction* IA_TakePistol;
 
 	void OnIATakePistol(const FInputActionValue& value);
 
-	// ÃÑÀÌ ¹èÄ¡µÉ ÄÄÆ÷³ÍÆ®
+	// ì´ì´ ë°°ì¹˜ë  ì»´í¬ë„ŒíŠ¸
 	UPROPERTY(EditDefaultsOnly, Category = TSP)
 	class USceneComponent* GunComp;
 
 	UPROPERTY()
 	TArray<AActor*> PistolList;
 
-	// ÃÑÀ» ±â¾ïÇÏ°í½Í´Ù.
+	// ì´ì„ ê¸°ì–µí•˜ê³ ì‹¶ë‹¤.
+	UPROPERTY(Replicated)
 	bool bHasPistol;
 
 	UPROPERTY()
 	AActor* OwnedPistol;
 	
-	// ÃÑÀ» °Ë»öÇÏ°í½Í´Ù.
+	// ì´ì„ ê²€ìƒ‰í•˜ê³ ì‹¶ë‹¤.
 	UPROPERTY(EditDefaultsOnly, Category = TSP)
 	float GunSearchDist = 200;
 
@@ -105,7 +106,7 @@ public:
 	void TakePistol();
 	void ReleasePistol();
 
-	// ÃÑÀ» ½î°í ½Í´Ù. ÃÑÀ» ½ğ À§Ä¡¿¡ VFX¸¦ Ç¥ÇöÇÏ°í½Í´Ù.
+	// ì´ì„ ì˜ê³  ì‹¶ë‹¤. ì´ì„ ìœ ìœ„ì¹˜ì— VFXë¥¼ í‘œí˜„í•˜ê³ ì‹¶ë‹¤.
 	UPROPERTY(EditDefaultsOnly, Category = Input)
 	class UInputAction* IA_Fire;
 
@@ -126,14 +127,14 @@ public:
 
 	void InitMainUI();
 
-	// ÃÖ´ëÃÑ¾Ë °¹¼ö
+	// ìµœëŒ€ì´ì•Œ ê°¯ìˆ˜
 	UPROPERTY(EditDefaultsOnly, Category = TPS)
 	int32 MaxBulletCount = 10;
-	// ÇöÀçÃÑ¾Ë °¹¼ö
+	// í˜„ì¬ì´ì•Œ ê°¯ìˆ˜
 	int32 BulletCount = MaxBulletCount;
 
 
-	// R ¹öÆ°À» ´©¸£¸é ÀçÀåÀü ÇÏ°í½Í´Ù.
+	// R ë²„íŠ¼ì„ ëˆ„ë¥´ë©´ ì¬ì¥ì „ í•˜ê³ ì‹¶ë‹¤.
 	UPROPERTY(EditDefaultsOnly, Category = Input)
 	class UInputAction* IA_Reload;
 
@@ -145,8 +146,8 @@ public:
 	class UAnimMontage* ReloadMontage;
 
 
-	// Ã¼·ÂÀ» ¸¸µé°í °ü¸®ÇÏ°í½Í´Ù.
-	// ÃÖ´ëÃ¼·Â, ÇöÀçÃ¼·Â, UI
+	// ì²´ë ¥ì„ ë§Œë“¤ê³  ê´€ë¦¬í•˜ê³ ì‹¶ë‹¤.
+	// ìµœëŒ€ì²´ë ¥, í˜„ì¬ì²´ë ¥, UI
 	UPROPERTY(EditDefaultsOnly, Category = TPS)
 	int32 MaxHP = 3;
 
@@ -157,11 +158,11 @@ public:
 	int32 GetHP();
 	void SetHP(int value);
 
-	// À§Á¬ ÄÄÆ÷³ÍÆ® ¸¸µé¾î¼­ UI¹İ¿µÇØ¼­ º¸ÀÌ°Ô ÇÏ°í½Í´Ù.
+	// ìœ„ì ¯ ì»´í¬ë„ŒíŠ¸ ë§Œë“¤ì–´ì„œ UIë°˜ì˜í•´ì„œ ë³´ì´ê²Œ í•˜ê³ ì‹¶ë‹¤.
 	UPROPERTY(EditDefaultsOnly, Category = TPS)
 	class UWidgetComponent* HPComp;
 
-	// ÅÂ¾î³¯ ¶§ HPCompÀÇ À§Á¬À» °¡Á®¿Í¼­ ±â¾ïÇÏ°í½Í´Ù.
+	// íƒœì–´ë‚  ë•Œ HPCompì˜ ìœ„ì ¯ì„ ê°€ì ¸ì™€ì„œ ê¸°ì–µí•˜ê³ ì‹¶ë‹¤.
 	UPROPERTY()
 	class UHPWidget* HpUI;
 
@@ -170,6 +171,44 @@ public:
 	bool bDie;
 
 	bool bReloading;
+
+
+	// ì´ì¡ê¸° s==============================================
+	// E ë²„íŠ¼ì„ ëˆŒëŸ¬ ì´ì„ ì¡ì„ ë•Œ...
+	// 1. í´ë¼ê°€ ì„œë²„RPCë¥¼ í˜¸ì¶œ
+	// 2.1 ì„œë²„ì˜ RPC_í•¨ìˆ˜ê°€ í˜¸ì¶œ
+	// 2.2 ë©€í‹°ìºìŠ¤íŠ¸RPCë¥¼ í˜¸ì¶œí•´ì„œ ëª¨ë“  í´ë¼ê°€ ì´ì„ ì¡ê²Œ í•˜ê³ ì‹¶ë‹¤.
+	UFUNCTION(Server, Reliable)
+	void ServerRPC_TakePistol();
+
+	UFUNCTION(NetMulticast, Reliable)
+	void MultiRPC_TakePistol(AActor* pistolActor);
+	// ì´ì¡ê¸° e==============================================
+
+	// ì´ë†“ê¸° s==============================================
+	UFUNCTION(Server, Reliable)
+	void ServerRPC_ReleasePistol();
+
+	UFUNCTION(NetMulticast, Reliable)
+	void MultiRPC_ReleasePistol(AActor* pistolActor);
+	// ì´ì¡ê¸° e==============================================
+
+	// ì´ì˜ê¸° s==============================================
+	UFUNCTION(Server, Reliable)
+	void ServerRPC_Fire();
+
+	UFUNCTION(NetMulticast, Reliable)
+	void MultiRPC_Fire(int32 newBulletCount, bool bHit, FHitResult OutHit);
+	// ì´ì˜ê¸° e==============================================
+
+
+
+
+
+
+
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+
 
 };
 

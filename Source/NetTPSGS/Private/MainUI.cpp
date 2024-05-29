@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+ï»¿// Fill out your copyright notice in the Description page of Project Settings.
 
 
 #include "MainUI.h"
@@ -7,7 +7,7 @@
 
 void UMainUI::SetActiveCrosshair(bool value)
 {
-	// ImageCrosshair¸¦ È°¼º/ºñÈ°¼º Ã³¸®ÇÏ°í½Í´Ù.
+	// ImageCrosshairë¥¼ í™œì„±/ë¹„í™œì„± ì²˜ë¦¬í•˜ê³ ì‹¶ë‹¤.
 	ImageCrosshair->SetVisibility(value ? ESlateVisibility::Visible : ESlateVisibility::Hidden);
 
 	BulletPanel->SetVisibility(value ? ESlateVisibility::Visible : ESlateVisibility::Hidden);
@@ -16,7 +16,7 @@ void UMainUI::SetActiveCrosshair(bool value)
 void UMainUI::InitBulletPanel(int max)
 {
 	MaxBullet = max;
-	// ÃÑ¾Ë UI¸¦ max °¹¼ö¸¸Å­ ¸¸µé¾î¼­ BulletPanel¿¡ ºÙÀÌ°í ½Í´Ù.
+	// ì´ì•Œ UIë¥¼ max ê°¯ìˆ˜ë§Œí¼ ë§Œë“¤ì–´ì„œ BulletPanelì— ë¶™ì´ê³  ì‹¶ë‹¤.
 	for (int i = 0; i < max; i++)
 	{
 		AddBullet();

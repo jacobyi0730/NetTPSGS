@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+ï»¿// Fill out your copyright notice in the Description page of Project Settings.
 
 
 #include "NetTestActor.h"
@@ -30,13 +30,13 @@ void ANetTestActor::BeginPlay()
 
 	Mat = MeshComp->CreateDynamicMaterialInstance(0);
 
-	// ¸¸¾à ³»°¡ ¼­¹ö¶ó¸é
+	// ë§Œì•½ ë‚´ê°€ ì„œë²„ë¼ë©´
 	if (HasAuthority())
 	{
-		// Å¸ÀÌ¸Ó¸¦ ½ÇÇàÇÏ°í½Í´Ù.
+		// íƒ€ì´ë¨¸ë¥¼ ì‹¤í–‰í•˜ê³ ì‹¶ë‹¤.
 		FTimerHandle handle;
 		GetWorld()->GetTimerManager().SetTimer(handle, [&]() {
-			// 1ÃÊ¸¶´Ù MatColor¸¦ ·£´ıÀ¸·Î °áÁ¤ÇÏ°í½Í´Ù.
+			// 1ì´ˆë§ˆë‹¤ MatColorë¥¼ ëœë¤ìœ¼ë¡œ ê²°ì •í•˜ê³ ì‹¶ë‹¤.
 			//MatColor = FLinearColor::MakeRandomColor();
 			//OnRep_MatColor();
 			ServerRPC_ChangeColor(FLinearColor::MakeRandomColor());
@@ -73,34 +73,34 @@ void ANetTestActor::PrintNetInfo()
 
 void ANetTestActor::CheckOwner()
 {
-	// ¸¸¾à ¼­¹ö¶ó¸é
+	// ë§Œì•½ ì„œë²„ë¼ë©´
 	//if (GetLocalRole() == ROLE_Authority)
 	if (HasAuthority())
 	{
 		float minDist = CheckDist;
 		AActor* newOwner = nullptr;
-		// ÁÖº¯ÀÇ ANetTPSGSCharacterÀ» °è¼Ó °Ë»öÇÏ°í½Í´Ù.
+		// ì£¼ë³€ì˜ ANetTPSGSCharacterì„ ê³„ì† ê²€ìƒ‰í•˜ê³ ì‹¶ë‹¤.
 		for (TActorIterator<ANetTPSGSCharacter> it(GetWorld()); it; ++it)
 		{
 			AActor* otherActor = *it;
-			// ³ª¿ÍÀÇ °Å¸®¸¦ Àç¼­ 
+			// ë‚˜ì™€ì˜ ê±°ë¦¬ë¥¼ ì¬ì„œ 
 			float tempDist = otherActor->GetDistanceTo(this);
-			// ¸¸¾à minDistº¸´Ù °¡±õ´Ù¸é ±â¾ïÇÏ°í
+			// ë§Œì•½ minDistë³´ë‹¤ ê°€ê¹ë‹¤ë©´ ê¸°ì–µí•˜ê³ 
 			if (tempDist < minDist)
 			{
-				// °¡Àå °¡±î¿î ANetTPSGSCharacter¸¦ newOwner·Î ±â¾ïÇØ¼­
+				// ê°€ì¥ ê°€ê¹Œìš´ ANetTPSGSCharacterë¥¼ newOwnerë¡œ ê¸°ì–µí•´ì„œ
 				minDist = tempDist;
 				newOwner = otherActor;
 			}
 		}
-		// ¸¸¾à ÇöÀç ³»¿À³Ê°¡ newOwner¿Í ´Ù¸£´Ù¸é
+		// ë§Œì•½ í˜„ì¬ ë‚´ì˜¤ë„ˆê°€ newOwnerì™€ ë‹¤ë¥´ë‹¤ë©´
 		if (GetOwner() != newOwner) {
-			// ³ªÀÇ ¿À³Ê·Î ÇÏ°í½Í´Ù.
+			// ë‚˜ì˜ ì˜¤ë„ˆë¡œ í•˜ê³ ì‹¶ë‹¤.
 			SetOwner(newOwner);
 		}
 
 	}
-	DrawDebugSphere(GetWorld(), GetActorLocation(), CheckDist, 30, FColor::Yellow, 0, 0, 1);
+	DrawDebugSphere(GetWorld(), GetActorLocation(), CheckDist, 10, FColor::Yellow, 0, 0, 1);
 
 }
 
@@ -109,22 +109,22 @@ void ANetTestActor::DoRotationYaw()
 	float dt = GetWorld()->GetDeltaSeconds();
 	if (HasAuthority())
 	{
-		// ¼­¹ö
+		// ì„œë²„
 		AddActorLocalRotation(FRotator(0, 50 * dt, 0));
 		RotYaw = GetActorRotation().Yaw;
 	}
-	else// Å¬¶ó
+	else// í´ë¼
 	{
-		// ½Ã°£ÀÌ Èå¸£°í ½Í´Ù.
+		// ì‹œê°„ì´ íë¥´ê³  ì‹¶ë‹¤.
 		CurrentTime += dt;
 
-		// ¸¸¾à LastTimeÀÌ 0ÀÌ¶ó¸é Á¾·á
+		// ë§Œì•½ LastTimeì´ 0ì´ë¼ë©´ ì¢…ë£Œ
 		if (LastTime < KINDA_SMALL_NUMBER) {
 			return;
 		}
 
 		float lerpRatio = CurrentTime / LastTime;
-		// ÇöÀç½Ã°£, ³¡½Ã°£
+		// í˜„ì¬ì‹œê°„, ëì‹œê°„
 		float newYaw = RotYaw + 50 * LastTime;
 		float lerpYaw = FMath::Lerp(RotYaw, newYaw, lerpRatio);
 		FRotator rot = GetActorRotation();
@@ -143,22 +143,17 @@ void ANetTestActor::OnRep_RotYaw()
 
 void ANetTestActor::OnRep_MatColor()
 {
-	// Å¬¶óÀÌ¾ğÆ®¿¡¼­ È£ÃâµÇ´Â ÇÔ¼ö´Ù.
-	// ¸¸¾à Mat ÀÌÀÖ´Ù¸é
+	// í´ë¼ì´ì–¸íŠ¸ì—ì„œ í˜¸ì¶œë˜ëŠ” í•¨ìˆ˜ë‹¤.
+	// ë§Œì•½ Mat ì´ìˆë‹¤ë©´
 	if (Mat)
 	{
-		// MatÀÇ »öÀ» MatColor·Î Àû¿ëÇÏ°í½Í´Ù.
+		// Matì˜ ìƒ‰ì„ MatColorë¡œ ì ìš©í•˜ê³ ì‹¶ë‹¤.
 		Mat->SetVectorParameterValue(TEXT("FloorColor"), MatColor);
 	}
 }
 
 void ANetTestActor::ServerRPC_ChangeColor_Implementation(const FLinearColor newColor)
 {
-	// MatÀÇ »öÀ» MatColor·Î Àû¿ëÇÏ°í½Í´Ù.
-	if (Mat)
-	{
-		Mat->SetVectorParameterValue(TEXT("FloorColor"), newColor);
-	}
 	MultiRPC_ChangeColor(newColor);
 }
 
@@ -187,6 +182,8 @@ bool ANetTestActor::ServerRPC_ChangeColor_Validate(const FLinearColor newColor)
 
 void ANetTestActor::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
+
+	
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME(ANetTestActor, RotYaw);
