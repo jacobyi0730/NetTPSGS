@@ -214,6 +214,11 @@ public:
 	// 죽음처리
 	void PrepareDie();
 
+	// 죽었다.
+	// 충돌처리 Off
+	// 이동 Off
+	// UI -> 리스폰
+
 
 
 

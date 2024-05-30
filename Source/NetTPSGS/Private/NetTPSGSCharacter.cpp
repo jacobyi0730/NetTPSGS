@@ -499,6 +499,23 @@ void ANetTPSGSCharacter::PrepareDie()
 	if ( IsLocallyControlled() )
 	{
 		FollowCamera->PostProcessSettings.ColorSaturation = FVector4(0, 0, 0, 1);
+
+		// 죽음 애니메이션이 끝나고 회색 처리가 되었다.
+		// 총을 떨구고 싶다.
+		ReleasePistol();
+		// 충돌처리 Off
+		GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		GetMesh()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		// 이동 Off
+		GetCharacterMovement()->DisableMovement();
+		// UI -> 리스폰 / 종료
+		if ( MainUI )
+		{
+			auto* pc = GetWorld()->GetFirstPlayerController();
+			pc->SetInputMode(FInputModeUIOnly());
+			pc->SetShowMouseCursor(true);
+			MainUI->SetActiveGameOverUI(true);
+		}
 	}
 }
 

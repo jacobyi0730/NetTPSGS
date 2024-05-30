@@ -4,6 +4,8 @@
 #include "MainUI.h"
 #include <../../../../../../../Source/Runtime/UMG/Public/Components/Image.h>
 #include <../../../../../../../Source/Runtime/UMG/Public/Components/UniformGridPanel.h>
+#include <../../../../../../../Source/Runtime/UMG/Public/Components/Button.h>
+#include <../../../../../../../Source/Runtime/UMG/Public/Components/CanvasPanel.h>
 
 void UMainUI::SetActiveCrosshair(bool value)
 {
@@ -55,4 +57,23 @@ void UMainUI::UpdateHPBar(float newHP)
 void UMainUI::PlayDamageAnimation()
 {
 	PlayAnimation(DamageAnimation, 0, 1);
+}
+
+void UMainUI::OnMyButtonRespawn()
+{
+}
+
+void UMainUI::OnMyButtonQuit()
+{
+}
+
+void UMainUI::SetActiveGameOverUI(bool value)
+{
+	GameOverUI->SetVisibility(value ? ESlateVisibility::Visible : ESlateVisibility::Hidden);
+}
+
+void UMainUI::NativeConstruct()
+{
+	ButtonRespawn->OnClicked.AddDynamic(this, &UMainUI::OnMyButtonRespawn);
+	ButtonQuit->OnClicked.AddDynamic(this, &UMainUI::OnMyButtonQuit);
 }

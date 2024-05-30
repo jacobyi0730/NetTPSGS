@@ -50,4 +50,21 @@ public:
 
 	void PlayDamageAnimation();
 
+	// 게임오버 변수 생성 기능 추가
+	UPROPERTY(EditDefaultsOnly, meta = (BindWidget))
+	class UCanvasPanel* GameOverUI;
+	UPROPERTY(EditDefaultsOnly, meta = (BindWidget))
+	class UButton* ButtonRespawn;
+	UPROPERTY(EditDefaultsOnly, meta = (BindWidget))
+	class UButton* ButtonQuit;
+
+	UFUNCTION()
+	void OnMyButtonRespawn();
+
+	UFUNCTION()
+	void OnMyButtonQuit();
+
+	void SetActiveGameOverUI(bool value);
+
+	virtual void NativeConstruct() override;
 };
