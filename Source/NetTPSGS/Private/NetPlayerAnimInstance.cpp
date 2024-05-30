@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+ï»¿// Fill out your copyright notice in the Description page of Project Settings.
 
 
 #include "NetPlayerAnimInstance.h"
@@ -8,7 +8,7 @@ void UNetPlayerAnimInstance::NativeInitializeAnimation()
 {
 	Super::NativeInitializeAnimation();
 
-	// ¿À³Ê¸¦ °¡Á®¿Í¼­ Me¿¡ Ã¤¿ì°í½Í´Ù.
+	// ì˜¤ë„ˆë¥¼ ê°€ì ¸ì™€ì„œ Meì— ì±„ìš°ê³ ì‹¶ë‹¤.
 	Me = Cast<ANetTPSGSCharacter>(TryGetPawnOwner());
 }
 
@@ -19,34 +19,39 @@ void UNetPlayerAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 	if (nullptr == Me)
 		return;
 
-	// MeÀÇ ÀÌµ¿¼Óµµ¸¦ Horizontal, Vertical·Î ºĞ¸®ÇØ¼­ °¢ °¢ º¯¼ö¿¡ Ã¤¿ì°í½Í´Ù.
+	// Meì˜ ì´ë™ì†ë„ë¥¼ Horizontal, Verticalë¡œ ë¶„ë¦¬í•´ì„œ ê° ê° ë³€ìˆ˜ì— ì±„ìš°ê³ ì‹¶ë‹¤.
 
-	// MeÀÇ ÀÌµ¿ ¼Óµµ¸¦ °¡Á®¿À°í½Í´Ù.
+	// Meì˜ ì´ë™ ì†ë„ë¥¼ ê°€ì ¸ì˜¤ê³ ì‹¶ë‹¤.
 	auto vel = Me->GetVelocity();
-	// MeÀÇ ÀÌµ¿ ¼Óµµ¿Í MeÀÇ ¾Õ¹æÇâÀ» Dot ÇØ¼­ Vertical¿¡ ´ëÀÔÇÏ°í½Í´Ù.
+	// Meì˜ ì´ë™ ì†ë„ì™€ Meì˜ ì•ë°©í–¥ì„ Dot í•´ì„œ Verticalì— ëŒ€ì…í•˜ê³ ì‹¶ë‹¤.
 	Vertical = FVector::DotProduct(vel, Me->GetActorForwardVector());
 
-	// MeÀÇ ÀÌµ¿ ¼Óµµ¿Í MeÀÇ ¿À¸¥ÂÊ¹æÇâÀ» Dot ÇØ¼­ Horizontal¿¡ ´ëÀÔÇÏ°í½Í´Ù.
+	// Meì˜ ì´ë™ ì†ë„ì™€ Meì˜ ì˜¤ë¥¸ìª½ë°©í–¥ì„ Dot í•´ì„œ Horizontalì— ëŒ€ì…í•˜ê³ ì‹¶ë‹¤.
 	Horizontal = FVector::DotProduct(vel, Me->GetActorRightVector());
 
-	// ÁÖÀÎ°øÀÌ ÃÑÀ» Áı¾ú´Ù´Â Á¤º¸¸¦ °¡Á®¿À°í½Í´Ù.
+	// ì£¼ì¸ê³µì´ ì´ì„ ì§‘ì—ˆë‹¤ëŠ” ì •ë³´ë¥¼ ê°€ì ¸ì˜¤ê³ ì‹¶ë‹¤.
 	bHasPistol = Me->bHasPistol;
 
-	// ÁÖÀÎ°øÀÇ AimRotationÀÇ Pitch°ªÀ» ±â¾ïÇÏ°í½Í´Ù. (0~360=> -180 ~ 180)
+	// ì£¼ì¸ê³µì˜ AimRotationì˜ Pitchê°’ì„ ê¸°ì–µí•˜ê³ ì‹¶ë‹¤. (0~360=> -180 ~ 180)
 	PitchAngle = Me->GetBaseAimRotation().GetNormalized().Pitch;
-	// PitchAngle°ªÀ» -60 ~ 60 ¾È¿¡ °¡µÎ°í ½Í´Ù.
+	// PitchAngleê°’ì„ -60 ~ 60 ì•ˆì— ê°€ë‘ê³  ì‹¶ë‹¤.
 	PitchAngle = FMath::Clamp(-PitchAngle, -60, 60);
 
-	// ÁÖÀÎ°øÀÇ bDie¸¦ °¡Á®¿À°í½Í´Ù.
+	// ì£¼ì¸ê³µì˜ bDieë¥¼ ê°€ì ¸ì˜¤ê³ ì‹¶ë‹¤.
 	bDie = Me->bDie;
 }
 
 void UNetPlayerAnimInstance::AnimNotify_ReloadFinished()
 {
-	// ³ªÀÇ ¿À³Ê°¡ ÁÖÀÎ°øÀÌ¶ó¸é 
+	// ë‚˜ì˜ ì˜¤ë„ˆê°€ ì£¼ì¸ê³µì´ë¼ë©´ 
 	if (Me)
 	{
-		// ÁÖÀÎ°øÀÇ OnMyReloadFinished¸¦ È£ÃâÇÏ°í½Í´Ù.
+		// ì£¼ì¸ê³µì˜ OnMyReloadFinishedë¥¼ í˜¸ì¶œí•˜ê³ ì‹¶ë‹¤.
 		Me->OnMyReloadFinished();
 	}
+}
+
+void UNetPlayerAnimInstance::AnimNotify_DieEnd()
+{
+	Me->PrepareDie();
 }

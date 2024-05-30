@@ -43,4 +43,11 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = TPS)
 	float HP = 1.0f;
 
+	void UpdateHPBar(float newHP);
+
+	UPROPERTY(EditDefaultsOnly, meta=(BindWidgetAnim), Transient)
+	class UWidgetAnimation* DamageAnimation;
+
+	void PlayDamageAnimation();
+
 };

@@ -16,6 +16,7 @@
 #include <../../../../../../../Source/Runtime/UMG/Public/Components/WidgetComponent.h>
 #include "HPWidget.h"
 #include "Net/UnrealNetwork.h"
+#include <../../../../../../../Source/Runtime/Engine/Classes/Kismet/KismetMathLibrary.h>
 
 DEFINE_LOG_CATEGORY(LogTemplateCharacter);
 
@@ -88,6 +89,23 @@ void ANetTPSGSCharacter::Tick(float DeltaSeconds)
 	Super::Tick(DeltaSeconds);
 
 	PrintNetInfo();
+
+	// UI에 반영
+	if ( MainUI )	{
+		MainUI->UpdateHPBar((float)_HP / MaxHP);
+	}
+	else if ( HpUI )	{
+		HpUI->UpdateHPBar((float)_HP / MaxHP);
+	}
+
+	// HPComp를 빌보드 처리하고싶다.
+	TObjectPtr<APlayerCameraManager> camMgr = GetWorld()->GetFirstPlayerController()->PlayerCameraManager;
+
+	// UI가 카메라를 향하는 방향으로 회전하고싶다.
+	FVector direction = camMgr->GetCameraLocation() - HPComp->GetComponentLocation();
+	FRotator rot = UKismetMathLibrary::MakeRotFromX(direction);
+	HPComp->SetWorldRotation(rot);
+	
 }
 
 void ANetTPSGSCharacter::PrintNetInfo()
@@ -127,7 +145,6 @@ void ANetTPSGSCharacter::BeginPlay()
 
 	InitMainUI();
 
-	HpUI = Cast<UHPWidget>(HPComp->GetWidget());
 
 	HP = MaxHP;
 }
@@ -296,6 +313,15 @@ void ANetTPSGSCharacter::InitMainUI()
 
 		MainUI->InitBulletPanel(MaxBulletCount);
 	}
+	if ( HPComp )
+	{
+		HpUI = Cast<UHPWidget>(HPComp->GetWidget());
+		// 만약 내가 로컬이면 HPComp를 안보이게 하고싶다.
+		if ( IsLocallyControlled() )
+		{
+			HPComp->SetVisibility(false);
+		}
+	}
 }
 
 void ANetTPSGSCharacter::OnIAReload(const FInputActionValue& value)
@@ -318,13 +344,7 @@ void ANetTPSGSCharacter::OnIAReload(const FInputActionValue& value)
 void ANetTPSGSCharacter::OnMyReloadFinished()
 {
 	// 총을 다시 최대 갯수로 꽉 채우고싶다.
-	bReloading = false;
-	if (MainUI)
-	{
-		MainUI->RemoveAllBullets();
-		MainUI->InitBulletPanel(MaxBulletCount);
-		BulletCount = MaxBulletCount;
-	}
+	ServerRPC_Reload();
 }
 
 int32 ANetTPSGSCharacter::GetHP()
@@ -332,16 +352,19 @@ int32 ANetTPSGSCharacter::GetHP()
 	return _HP;
 }
 
+// Mulicast를 통해서 모든 클라에게 반영되고있다.
 void ANetTPSGSCharacter::SetHP(int value)
 {
 	_HP = value;
-	// UI에 반영
-	HpUI->UpdateHPBar((float)_HP / MaxHP);
 }
 
 void ANetTPSGSCharacter::OnMyTakeDamage()
 {
 	HP = HP - 1;
+	if ( MainUI )
+	{
+		MainUI->PlayDamageAnimation();
+	}
 	// 만약 HP가 0이하면 죽음처리
 	if (HP <= 0)
 	{
@@ -446,11 +469,45 @@ void ANetTPSGSCharacter::MultiRPC_Fire_Implementation(int32 newBulletCount, bool
 	}
 }
 
+// 여기는 서버에서 호출됨
+void ANetTPSGSCharacter::ServerRPC_Reload_Implementation()
+{
+	// 기능적으로 총알을 꽉 채우고싶다.
+	RefillAllRounds();
+	ClientRPC_Reload();
+}
+
+// 여기는 클라이언트에서 호출됨
+void ANetTPSGSCharacter::ClientRPC_Reload_Implementation()
+{
+	bReloading = false;
+	RefillAllRounds();
+	if ( MainUI )
+	{
+		MainUI->RemoveAllBullets();
+		MainUI->InitBulletPanel(MaxBulletCount);
+	}
+}
+
+void ANetTPSGSCharacter::RefillAllRounds()
+{
+	BulletCount = MaxBulletCount;
+}
+
+void ANetTPSGSCharacter::PrepareDie()
+{
+	if ( IsLocallyControlled() )
+	{
+		FollowCamera->PostProcessSettings.ColorSaturation = FVector4(0, 0, 0, 1);
+	}
+}
+
 void ANetTPSGSCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME(ANetTPSGSCharacter, bHasPistol);
+	DOREPLIFETIME(ANetTPSGSCharacter, _HP);
 }
 
 

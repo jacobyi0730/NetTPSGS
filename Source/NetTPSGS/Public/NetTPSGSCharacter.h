@@ -151,7 +151,7 @@ public:
 	UPROPERTY(EditDefaultsOnly, Category = TPS)
 	int32 MaxHP = 3;
 
-	UPROPERTY(EditDefaultsOnly, Category = TPS)
+	UPROPERTY(Replicated, EditDefaultsOnly, Category = TPS)
 	int32 _HP = MaxHP;
 
 	__declspec(property(get = GetHP, put = SetHP)) int32 HP;
@@ -201,8 +201,18 @@ public:
 	void MultiRPC_Fire(int32 newBulletCount, bool bHit, FHitResult OutHit);
 	// 총쏘기 e==============================================
 
+	// 재장전 s==============================================
+	UFUNCTION(Server, Reliable)
+	void ServerRPC_Reload();
 
+	UFUNCTION(Client, Reliable)
+	void ClientRPC_Reload();
 
+	void RefillAllRounds();
+	// 재장전 e==============================================
+
+	// 죽음처리
+	void PrepareDie();
 
 
 

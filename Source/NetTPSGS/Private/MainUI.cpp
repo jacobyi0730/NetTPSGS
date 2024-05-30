@@ -46,3 +46,13 @@ void UMainUI::RemoveAllBullets()
 		BulletPanel->RemoveChildAt(0);
 	}
 }
+
+void UMainUI::UpdateHPBar(float newHP)
+{
+	HP = newHP;
+}
+
+void UMainUI::PlayDamageAnimation()
+{
+	PlayAnimation(DamageAnimation, 0, 1);
+}
