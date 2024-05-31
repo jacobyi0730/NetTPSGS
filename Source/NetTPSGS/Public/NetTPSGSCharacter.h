@@ -67,6 +67,8 @@ protected:
 	// To add mapping context
 	virtual void BeginPlay();
 
+	virtual void PossessedBy(AController* NewController) override;
+
 public:
 	/** Returns CameraBoom subobject **/
 	FORCEINLINE class USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
@@ -123,6 +125,7 @@ public:
 	UPROPERTY(EditDefaultsOnly, Category = TPS)
 	TSubclassOf<class UUserWidget> MainUIFactory;
 
+	UPROPERTY()
 	class UMainUI* MainUI;
 
 	void InitMainUI();

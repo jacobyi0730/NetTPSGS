@@ -17,6 +17,7 @@
 #include "HPWidget.h"
 #include "Net/UnrealNetwork.h"
 #include <../../../../../../../Source/Runtime/Engine/Classes/Kismet/KismetMathLibrary.h>
+#include "NetTPSPlayerController.h"
 
 DEFINE_LOG_CATEGORY(LogTemplateCharacter);
 
@@ -29,7 +30,7 @@ ANetTPSGSCharacter::ANetTPSGSCharacter()
 
 	// Set size for collision capsule
 	GetCapsuleComponent()->InitCapsuleSize(42.f, 96.0f);
-		
+
 	// Don't rotate when the controller rotates. Let that just affect the camera.
 	bUseControllerRotationPitch = false;
 	bUseControllerRotationYaw = false;
@@ -76,25 +77,32 @@ ANetTPSGSCharacter::ANetTPSGSCharacter()
 
 	ConstructorHelpers::FClassFinder<UUserWidget> TempWidget(TEXT("/Script/UMGEditor.WidgetBlueprint'/Game/Net/UI/WBP_HPWidget.WBP_HPWidget_C'"));
 
-	if (TempWidget.Succeeded())
+	if ( TempWidget.Succeeded() )
 	{
 		HPComp->SetWidgetClass(TempWidget.Class);
 		HPComp->SetRelativeLocation(FVector(0, 0, 120));
 		HPComp->SetDrawSize(FVector2D(150, 20));
 	}
+
+	bReplicates = true;
+	SetReplicateMovement(true);
 }
 
+FString testNetMode;
 void ANetTPSGSCharacter::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
 
 	PrintNetInfo();
 
+	testNetMode = GetNetMode() == ENetMode::NM_ListenServer ? TEXT("Server") : TEXT("Client");
+	
 	// UI에 반영
-	if ( MainUI )	{
+	if ( MainUI ) {
 		MainUI->UpdateHPBar((float)_HP / MaxHP);
 	}
-	else if ( HpUI )	{
+	if ( HpUI )
+	{
 		HpUI->UpdateHPBar((float)_HP / MaxHP);
 	}
 
@@ -105,7 +113,7 @@ void ANetTPSGSCharacter::Tick(float DeltaSeconds)
 	FVector direction = camMgr->GetCameraLocation() - HPComp->GetComponentLocation();
 	FRotator rot = UKismetMathLibrary::MakeRotFromX(direction);
 	HPComp->SetWorldRotation(rot);
-	
+
 }
 
 void ANetTPSGSCharacter::PrintNetInfo()
@@ -129,11 +137,16 @@ void ANetTPSGSCharacter::BeginPlay()
 {
 	// Call the base class  
 	Super::BeginPlay();
+	{
+		FString netMode = GetNetMode() == ENetMode::NM_ListenServer ? TEXT("Server") : TEXT("Client");
+		FString hasController = Controller ? TEXT("HasCont") : TEXT("NoCont");
+		UE_LOG(LogTemp, Warning, TEXT("[%s] %s - BeginPlay"), *netMode, *hasController);
+	}
 
 	//Add Input Mapping Context
-	if (APlayerController* PlayerController = Cast<APlayerController>(Controller))
+	if ( APlayerController* PlayerController = Cast<APlayerController>(Controller) )
 	{
-		if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer()))
+		if ( UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer()) )
 		{
 			Subsystem->AddMappingContext(DefaultMappingContext, 0);
 		}
@@ -143,10 +156,28 @@ void ANetTPSGSCharacter::BeginPlay()
 	//PistolList
 	UGameplayStatics::GetAllActorsOfClassWithTag(GetWorld(), AActor::StaticClass(), TEXT("Pistol"), PistolList);
 
-	InitMainUI();
-
-
+	// 만약 로컬이고 서버가 아니라면
+	if (false == HasAuthority())
+	{
+		InitMainUI();
+	}
 	HP = MaxHP;
+}
+
+void ANetTPSGSCharacter::PossessedBy(AController* NewController)
+{
+	Super::PossessedBy(NewController);
+
+	FString netMode = GetNetMode() == ENetMode::NM_ListenServer ? TEXT("Server") : TEXT("Client");
+	FString hasController = Controller ? TEXT("HasCont") : TEXT("NoCont");
+
+	UE_LOG(LogTemp, Warning, TEXT("[%s] %s - PossessedBy"), *netMode, *hasController);
+
+	// 내가 로컬이라면
+	if (IsLocallyControlled())
+	{
+		InitMainUI();
+	}
 }
 
 
@@ -156,8 +187,8 @@ void ANetTPSGSCharacter::BeginPlay()
 void ANetTPSGSCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	// Set up action bindings
-	if (UEnhancedInputComponent* EnhancedInputComponent = Cast<UEnhancedInputComponent>(PlayerInputComponent)) {
-		
+	if ( UEnhancedInputComponent* EnhancedInputComponent = Cast<UEnhancedInputComponent>(PlayerInputComponent) ) {
+
 		// Jumping
 		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Started, this, &ACharacter::Jump);
 		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &ACharacter::StopJumping);
@@ -167,11 +198,11 @@ void ANetTPSGSCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputC
 
 		// Looking
 		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &ANetTPSGSCharacter::Look);
-		
+
 		EnhancedInputComponent->BindAction(IA_TakePistol, ETriggerEvent::Started, this, &ANetTPSGSCharacter::OnIATakePistol);
-		
+
 		EnhancedInputComponent->BindAction(IA_Fire, ETriggerEvent::Started, this, &ANetTPSGSCharacter::OnIAFire);
-		
+
 		EnhancedInputComponent->BindAction(IA_Reload, ETriggerEvent::Started, this, &ANetTPSGSCharacter::OnIAReload);
 	}
 	else
@@ -185,7 +216,7 @@ void ANetTPSGSCharacter::Move(const FInputActionValue& Value)
 	// input is a Vector2D
 	FVector2D MovementVector = Value.Get<FVector2D>();
 
-	if (Controller != nullptr)
+	if ( Controller != nullptr )
 	{
 		// find out which way is forward
 		const FRotator Rotation = Controller->GetControlRotation();
@@ -193,7 +224,7 @@ void ANetTPSGSCharacter::Move(const FInputActionValue& Value)
 
 		// get forward vector
 		const FVector ForwardDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
-	
+
 		// get right vector 
 		const FVector RightDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
 
@@ -208,7 +239,7 @@ void ANetTPSGSCharacter::Look(const FInputActionValue& Value)
 	// input is a Vector2D
 	FVector2D LookAxisVector = Value.Get<FVector2D>();
 
-	if (Controller != nullptr)
+	if ( Controller != nullptr )
 	{
 		// add yaw and pitch input to controller
 		AddControllerYawInput(LookAxisVector.X);
@@ -218,7 +249,7 @@ void ANetTPSGSCharacter::Look(const FInputActionValue& Value)
 
 void ANetTPSGSCharacter::OnIATakePistol(const FInputActionValue& value)
 {
-	if (bHasPistol)
+	if ( bHasPistol )
 	{
 		// 이미 총을 잡고 있던 상태
 		// 놓기
@@ -240,7 +271,7 @@ void ANetTPSGSCharacter::AttachPistol(AActor* pistol)
 	meshComp->AttachToComponent(GunComp, FAttachmentTransformRules::SnapToTargetNotIncludingScale);
 
 	// 만약 MainUI가 있다면
-	if (IsLocallyControlled() && MainUI)
+	if ( IsLocallyControlled() && MainUI )
 	{
 		// 총을 들었을 때 켜주고 그렇지않으면 끄고싶다.
 		MainUI->SetActiveCrosshair(true);
@@ -251,7 +282,7 @@ void ANetTPSGSCharacter::AttachPistol(AActor* pistol)
 void ANetTPSGSCharacter::TakePistol()
 {
 	// 만약 총을 이미 잡고있다면 종료
-	if (bHasPistol)
+	if ( bHasPistol )
 	{
 		return;
 	}
@@ -263,7 +294,7 @@ void ANetTPSGSCharacter::DetachPistol(AActor* pistol)
 	// 구현!!
 	// 메시 찾고
 	UStaticMeshComponent* meshComp = pistol->GetComponentByClass<UStaticMeshComponent>();
-	if (meshComp)
+	if ( meshComp )
 	{
 		// 물리 켜고
 		meshComp->SetSimulatePhysics(true);
@@ -277,7 +308,7 @@ void ANetTPSGSCharacter::ReleasePistol()
 {
 	// 만약 총을 안 잡고있다면 종료
 	// 재장전 중이라면 종료
-	if (false == bHasPistol || bReloading)
+	if ( false == bHasPistol || bReloading )
 	{
 		return;
 	}
@@ -290,7 +321,7 @@ void ANetTPSGSCharacter::OnIAFire(const FInputActionValue& value)
 	// 총을 집고 있지 않다면 종료
 	// 만약 BulletCount가 0이하라면 종료
 	// 재장전 중이라면 종료
-	if (false == bHasPistol || BulletCount <= 0 || bReloading)
+	if ( false == bHasPistol || BulletCount <= 0 || bReloading )
 	{
 		return;
 	}
@@ -304,13 +335,28 @@ void ANetTPSGSCharacter::PlayFireMontage()
 
 void ANetTPSGSCharacter::InitMainUI()
 {
-	if (IsLocallyControlled() && MainUIFactory)
+	FString netMode = GetNetMode() == ENetMode::NM_ListenServer ? TEXT("Server") : TEXT("Client");
+	FString hasController = Controller ? TEXT("HasCont") : TEXT("NoCont");
+
+	UE_LOG(LogTemp, Warning, TEXT("[%s] %s - InitMainUI"), *netMode, *hasController);
+
+	if ( IsLocallyControlled() && MainUIFactory )
 	{
-		MainUI = Cast<UMainUI>(CreateWidget(GetWorld(), MainUIFactory));
-		MainUI->AddToViewport();
+		auto* pc = Cast<ANetTPSPlayerController>(Controller);
+		if ( nullptr == pc->MainUI )
+		{
+			pc->MainUI = Cast<UMainUI>(CreateWidget(GetWorld(), MainUIFactory));
+			pc->MainUI->AddToViewport();
+		}
+		
+		MainUI = pc->MainUI;
 
 		MainUI->SetActiveCrosshair(false);
-
+		// 시작할 때 체력을 꽉 채우고 싶다.
+		HP = MaxHP;
+		MainUI->UpdateHPBar(1);
+		// 총알을 최대 갯수로 하고 싶다.
+		MainUI->RemoveAllBullets();
 		MainUI->InitBulletPanel(MaxBulletCount);
 	}
 	if ( HPComp )
@@ -327,7 +373,7 @@ void ANetTPSGSCharacter::InitMainUI()
 void ANetTPSGSCharacter::OnIAReload(const FInputActionValue& value)
 {
 	// bReloading이 true라면 종료
-	if (bReloading || false == bHasPistol)
+	if ( bReloading || false == bHasPistol )
 	{
 		return;
 	}
@@ -335,7 +381,7 @@ void ANetTPSGSCharacter::OnIAReload(const FInputActionValue& value)
 
 	// 리로드 몽타주 애니메이션을 플레이하고싶다.
 	auto* anim = Cast<UNetPlayerAnimInstance>(GetMesh()->GetAnimInstance());
-	if (anim)
+	if ( anim )
 	{
 		anim->Montage_Play(ReloadMontage);
 	}
@@ -366,7 +412,7 @@ void ANetTPSGSCharacter::OnMyTakeDamage()
 		MainUI->PlayDamageAnimation();
 	}
 	// 만약 HP가 0이하면 죽음처리
-	if (HP <= 0)
+	if ( HP <= 0 )
 	{
 		bDie = true;
 	}
@@ -376,14 +422,14 @@ void ANetTPSGSCharacter::OnMyTakeDamage()
 
 void ANetTPSGSCharacter::ServerRPC_TakePistol_Implementation()
 {
-	for (auto pistol : PistolList)
+	for ( auto pistol : PistolList )
 	{
 		// 만약 pistol의 오너가 있으면 스킵
-		if (pistol->GetOwner() != nullptr)
+		if ( pistol->GetOwner() != nullptr )
 			continue;
 		// 거리 바깥이면(GunSearchDist) 스킵
 		float dist = pistol->GetDistanceTo(this);
-		if (dist > GunSearchDist)
+		if ( dist > GunSearchDist )
 			continue;
 
 		// 그 pistol을 OwnedPistol로 하고
@@ -408,7 +454,7 @@ void ANetTPSGSCharacter::MultiRPC_TakePistol_Implementation(AActor* pistolActor)
 void ANetTPSGSCharacter::ServerRPC_ReleasePistol_Implementation()
 {
 	// 만약 총을 소유하고 있었다면
-	if (OwnedPistol)
+	if ( OwnedPistol )
 	{
 		MultiRPC_ReleasePistol(OwnedPistol);
 
@@ -423,7 +469,7 @@ void ANetTPSGSCharacter::MultiRPC_ReleasePistol_Implementation(AActor* pistolAct
 	DetachPistol(pistolActor);
 
 	// UI를 안보이게 하고싶다.
-	if (IsLocallyControlled() && MainUI)
+	if ( IsLocallyControlled() && MainUI )
 	{
 		MainUI->SetActiveCrosshair(false);
 	}
@@ -452,17 +498,17 @@ void ANetTPSGSCharacter::MultiRPC_Fire_Implementation(int32 newBulletCount, bool
 	PlayFireMontage();
 
 	// 만약 MainUI가 있으면 총알을 하나씩 제거하고싶다.
-	if (IsLocallyControlled() && MainUI)
+	if ( IsLocallyControlled() && MainUI )
 	{
 		MainUI->RemoveBullet();
 	}
-	if (bHit)
+	if ( bHit )
 	{
 		UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), BulletImpactVFXFactory, OutHit.ImpactPoint);
 
 		// 맞은상대가 플레이어라면
 		auto otherPlayer = Cast<ANetTPSGSCharacter>(OutHit.GetActor());
-		if (otherPlayer)
+		if ( otherPlayer )
 		{
 			otherPlayer->OnMyTakeDamage();
 		}

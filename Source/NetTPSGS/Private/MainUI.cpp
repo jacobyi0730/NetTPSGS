@@ -6,6 +6,8 @@
 #include <../../../../../../../Source/Runtime/UMG/Public/Components/UniformGridPanel.h>
 #include <../../../../../../../Source/Runtime/UMG/Public/Components/Button.h>
 #include <../../../../../../../Source/Runtime/UMG/Public/Components/CanvasPanel.h>
+#include "Kismet/KismetSystemLibrary.h"
+#include "NetTPSPlayerController.h"
 
 void UMainUI::SetActiveCrosshair(bool value)
 {
@@ -61,10 +63,22 @@ void UMainUI::PlayDamageAnimation()
 
 void UMainUI::OnMyButtonRespawn()
 {
+	// 게임오버UI를 보이지않게하고
+	SetActiveGameOverUI(false);
+	auto* pc = Cast<ANetTPSPlayerController>(GetWorld()->GetFirstPlayerController());
+	if ( pc )
+	{
+		// 플레이어컨트롤러를 통해 재시작하고싶다.
+		pc->SetInputMode(FInputModeGameOnly());
+		pc->SetShowMouseCursor(false);
+		//pc->ServerRPC_RespawnPlayer();
+		pc->ServerRPC_ChangeSpectator();
+	}
 }
 
 void UMainUI::OnMyButtonQuit()
 {
+	UKismetSystemLibrary::QuitGame(GetWorld(), nullptr, EQuitPreference::Quit, false);
 }
 
 void UMainUI::SetActiveGameOverUI(bool value)
