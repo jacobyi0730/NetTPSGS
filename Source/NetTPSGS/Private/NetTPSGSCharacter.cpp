@@ -109,8 +109,10 @@ void ANetTPSGSCharacter::Tick(float DeltaSeconds)
 	// HPComp를 빌보드 처리하고싶다.
 	TObjectPtr<APlayerCameraManager> camMgr = GetWorld()->GetFirstPlayerController()->PlayerCameraManager;
 
+
 	// UI가 카메라를 향하는 방향으로 회전하고싶다.
 	FVector direction = camMgr->GetCameraLocation() - HPComp->GetComponentLocation();
+	direction.Z = 0;
 	FRotator rot = UKismetMathLibrary::MakeRotFromX(direction);
 	HPComp->SetWorldRotation(rot);
 
@@ -174,7 +176,7 @@ void ANetTPSGSCharacter::PossessedBy(AController* NewController)
 	UE_LOG(LogTemp, Warning, TEXT("[%s] %s - PossessedBy"), *netMode, *hasController);
 
 	// 내가 로컬이라면
-	if (IsLocallyControlled())
+	//if (IsLocallyControlled())
 	{
 		InitMainUI();
 	}
@@ -407,10 +409,6 @@ void ANetTPSGSCharacter::SetHP(int value)
 void ANetTPSGSCharacter::OnMyTakeDamage()
 {
 	HP = HP - 1;
-	if ( MainUI )
-	{
-		MainUI->PlayDamageAnimation();
-	}
 	// 만약 HP가 0이하면 죽음처리
 	if ( HP <= 0 )
 	{
@@ -488,6 +486,17 @@ void ANetTPSGSCharacter::ServerRPC_Fire_Implementation()
 
 	bool bHit = GetWorld()->LineTraceSingleByChannel(OutHit, Start, End, ECC_Visibility, Params);
 
+	// 서버가 할일
+	if ( bHit )
+	{
+		// 맞은상대가 플레이어라면
+		auto otherPlayer = Cast<ANetTPSGSCharacter>(OutHit.GetActor());
+		if ( otherPlayer )
+		{
+			otherPlayer->OnMyTakeDamage();
+		}
+	}
+
 	MultiRPC_Fire(BulletCount, bHit, OutHit);
 }
 
@@ -502,15 +511,15 @@ void ANetTPSGSCharacter::MultiRPC_Fire_Implementation(int32 newBulletCount, bool
 	{
 		MainUI->RemoveBullet();
 	}
+	// 클라가 할일
 	if ( bHit )
 	{
 		UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), BulletImpactVFXFactory, OutHit.ImpactPoint);
 
-		// 맞은상대가 플레이어라면
-		auto otherPlayer = Cast<ANetTPSGSCharacter>(OutHit.GetActor());
-		if ( otherPlayer )
+		auto* other = Cast<ANetTPSGSCharacter>(OutHit.GetActor());
+		if ( other && other->MainUI )
 		{
-			otherPlayer->OnMyTakeDamage();
+			other->MainUI->PlayDamageAnimation();
 		}
 	}
 }
@@ -538,6 +547,16 @@ void ANetTPSGSCharacter::ClientRPC_Reload_Implementation()
 void ANetTPSGSCharacter::RefillAllRounds()
 {
 	BulletCount = MaxBulletCount;
+}
+
+void ANetTPSGSCharacter::ServerRPC_Die_Implementation()
+{
+	MultiRPC_Die();
+}
+
+void ANetTPSGSCharacter::MultiRPC_Die_Implementation()
+{
+	PrepareDie();
 }
 
 void ANetTPSGSCharacter::PrepareDie()

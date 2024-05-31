@@ -215,6 +215,12 @@ public:
 	// 재장전 e==============================================
 
 	// 죽음처리
+	UFUNCTION(Server, Reliable)
+	void ServerRPC_Die();
+
+	UFUNCTION(NetMulticast, Reliable)
+	void MultiRPC_Die();
+	
 	void PrepareDie();
 
 	// 죽었다.

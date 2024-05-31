@@ -53,5 +53,5 @@ void UNetPlayerAnimInstance::AnimNotify_ReloadFinished()
 
 void UNetPlayerAnimInstance::AnimNotify_DieEnd()
 {
-	Me->PrepareDie();
+	Me->ServerRPC_Die();
 }
