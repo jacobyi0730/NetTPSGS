@@ -6,7 +6,7 @@
 #include "Components/Button.h"
 #include "Components/EditableText.h"
 #include "Components/Slider.h"
-#include <../../../../../../../Source/Runtime/UMG/Public/Components/TextBlock.h>
+#include "Components/TextBlock.h"
 
 void ULobbyWidget::NativeConstruct()
 {
