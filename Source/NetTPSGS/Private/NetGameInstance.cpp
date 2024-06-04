@@ -18,10 +18,10 @@ void UNetGameInstance::Init()
 		sessionInterface->OnCreateSessionCompleteDelegates.AddUObject(this, &UNetGameInstance::OnCreateSessionComplete);
 	}
 
-	FTimerHandle h;
-	GetWorld()->GetTimerManager().SetTimer(h, [&](){
-		CreateMySession(TEXT("MyRoom"), 20);
-	}, 2, false);
+	//FTimerHandle h;
+	//GetWorld()->GetTimerManager().SetTimer(h, [&](){
+	//	CreateMySession(TEXT("MyRoom"), 20);
+	//}, 2, false);
 }
 
 void UNetGameInstance::CreateMySession(FString roomName, int32 playerCount)
