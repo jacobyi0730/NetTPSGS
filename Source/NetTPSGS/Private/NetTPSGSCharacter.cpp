@@ -163,6 +163,18 @@ void ANetTPSGSCharacter::BeginPlay()
 	{
 		InitMainUI();
 	}
+
+	if ( HPComp )
+	{
+		HpUI = Cast<UHPWidget>(HPComp->GetWidget());
+		// 만약 내가 로컬이면 HPComp를 안보이게 하고싶다.
+		if ( IsLocallyControlled() )
+		{
+			HPComp->SetVisibility(false);
+		}
+	}
+
+
 	HP = MaxHP;
 }
 
@@ -360,15 +372,6 @@ void ANetTPSGSCharacter::InitMainUI()
 		// 총알을 최대 갯수로 하고 싶다.
 		MainUI->RemoveAllBullets();
 		MainUI->InitBulletPanel(MaxBulletCount);
-	}
-	if ( HPComp )
-	{
-		HpUI = Cast<UHPWidget>(HPComp->GetWidget());
-		// 만약 내가 로컬이면 HPComp를 안보이게 하고싶다.
-		if ( IsLocallyControlled() )
-		{
-			HPComp->SetVisibility(false);
-		}
 	}
 }
 
@@ -590,6 +593,7 @@ void ANetTPSGSCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& O
 
 	DOREPLIFETIME(ANetTPSGSCharacter, bHasPistol);
 	DOREPLIFETIME(ANetTPSGSCharacter, _HP);
+	DOREPLIFETIME(ANetTPSGSCharacter, bDie);
 }
 
 

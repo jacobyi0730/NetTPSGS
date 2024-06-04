@@ -171,6 +171,7 @@ public:
 
 	void OnMyTakeDamage();
 
+	UPROPERTY(Replicated)
 	bool bDie;
 
 	bool bReloading;
