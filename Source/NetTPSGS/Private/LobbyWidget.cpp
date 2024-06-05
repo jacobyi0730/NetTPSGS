@@ -15,6 +15,8 @@ void ULobbyWidget::NativeConstruct()
 	// 버튼을 연결하고싶다.
 	Button_CreateRoom->OnClicked.AddDynamic(this, &ULobbyWidget::OnMyClickCreateRoom);
 
+	Slider_PlayerCount->SetValue(FCString::Atof(*Text_PlayerCount->GetText().ToString()));
+
 	Slider_PlayerCount->OnValueChanged.AddDynamic(this, &ULobbyWidget::OnMyValueChanged);
 
 }
@@ -30,3 +32,4 @@ void ULobbyWidget::OnMyValueChanged(float value)
 {
 	Text_PlayerCount->SetText(FText::AsNumber(value));
 }
+

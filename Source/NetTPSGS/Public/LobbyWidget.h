@@ -30,6 +30,8 @@ public:
 	UPROPERTY(EditDefaultsOnly, meta = (BindWidget))
 	class UTextBlock* Text_PlayerCount;
 
+	// Button_CreateRoom을 누르면 GameInstance의 CreateMySession함수를 호출하고싶다.
+
 	UPROPERTY(EditDefaultsOnly, meta = (BindWidget))
 	class UButton* Button_CreateRoom;
 
@@ -40,5 +42,4 @@ public:
 	void OnMyValueChanged(float value);
 
 
-	// Button_CreateRoom을 누르면 GameInstance의 CreateMySession함수를 호출하고싶다.
 };

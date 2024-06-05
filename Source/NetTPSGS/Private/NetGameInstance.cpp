@@ -4,6 +4,7 @@
 #include "NetGameInstance.h"
 #include "OnlineSubsystem.h"
 #include "OnlineSessionSettings.h"
+#include "Online/OnlineSessionNames.h"
 
 void UNetGameInstance::Init()
 {
@@ -16,11 +17,14 @@ void UNetGameInstance::Init()
 		sessionInterface = subsys->GetSessionInterface();
 
 		sessionInterface->OnCreateSessionCompleteDelegates.AddUObject(this, &UNetGameInstance::OnCreateSessionComplete);
+
+		sessionInterface->OnFindSessionsCompleteDelegates.AddUObject(this, &UNetGameInstance::OnFindSessionsComplete);
 	}
 
 	//FTimerHandle h;
 	//GetWorld()->GetTimerManager().SetTimer(h, [&](){
-	//	CreateMySession(TEXT("MyRoom"), 20);
+	//	//CreateMySession(TEXT("MyRoom"), 20);
+	//	FindOtherSessions();
 	//}, 2, false);
 }
 
@@ -57,4 +61,40 @@ void UNetGameInstance::CreateMySession(FString roomName, int32 playerCount)
 void UNetGameInstance::OnCreateSessionComplete(FName sessionName, bool bWasSuccessful)
 {
 	UE_LOG(LogTemp, Warning, TEXT("OnCreateSessionComplete -> sessionName : %s, bWasSuccessful : %d"), *sessionName.ToString(), bWasSuccessful);
+}
+
+void UNetGameInstance::FindOtherSessions()
+{
+	// 세션인터페이스를 이용해서 방을 찾고싶다.
+	sessioinSearch = MakeShareable(new FOnlineSessionSearch);
+
+	// 검색 조건을 설정하고 싶다.
+	sessioinSearch->QuerySettings.Set(SEARCH_PRESENCE, true, EOnlineComparisonOp::Equals);
+
+	// LAN 여부
+	sessioinSearch->bIsLanQuery = IOnlineSubsystem::Get()->GetSubsystemName() == "NULL";
+
+	// 최대 검색 수 
+	sessioinSearch->MaxSearchResults = 10;
+
+	sessionInterface->FindSessions(0, sessioinSearch.ToSharedRef());
+}
+
+void UNetGameInstance::OnFindSessionsComplete(bool bWasSuccessful)
+{
+	// 만약 성공했다면
+	if ( bWasSuccessful )
+	{
+		// sessioinSearch에서 정보를 가져오고싶다. -> UI로 표현하고싶다.
+		auto results = sessioinSearch->SearchResults;
+		for ( auto item : results )
+		{
+			if ( false == item.IsValid() ) { continue; }
+
+			FSessionInfo info;
+			info.Set(item);
+
+			UE_LOG(LogTemp, Warning, TEXT("%s"), *info.ToString());
+		}
+	}
 }
