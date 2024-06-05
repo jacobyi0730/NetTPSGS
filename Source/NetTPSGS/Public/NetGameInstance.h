@@ -26,9 +26,12 @@ struct FSessionInfo
 	UPROPERTY(BlueprintReadOnly)
 	int32 pingMs;
 
-	FORCEINLINE void Set(const FOnlineSessionSearchResult& item) {
-		item.Session.SessionSettings.Get(FName("ROOM_NAME"), roomName);
-		item.Session.SessionSettings.Get(FName("HOST_NAME"), hostName);
+	int32 index;
+
+	FORCEINLINE void Set(int32 _index, const FOnlineSessionSearchResult& item) {
+		index = _index;
+		//item.Session.SessionSettings.Get(FName("ROOM_NAME"), roomName);
+		//item.Session.SessionSettings.Get(FName("HOST_NAME"), hostName);
 		// 방장의 이름
 		userName = item.Session.OwningUserName;
 		// 최대 플레이어 수
@@ -44,6 +47,9 @@ struct FSessionInfo
 };
 
 
+// 방찾기 요청 후 응답이 왔을 때 호출될 델리게이트
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FSessioinSearchDelegate, const FSessionInfo&, info);
+
 
 UCLASS()
 class NETTPSGS_API UNetGameInstance : public UGameInstance
@@ -56,11 +62,12 @@ public:
 	// 세션 인터페이스를 만들고싶다.
 	IOnlineSessionPtr sessionInterface;
 
+	FSessioinSearchDelegate OnMySessionSearchCompleteDelegate;
+
 	// 방생성 요청 기능
 	void CreateMySession(FString roomName, int32 playerCount);
 
 	// 방생성 응답
-	UFUNCTION()
 	void OnCreateSessionComplete(FName sessionName, bool bWasSuccessful);
 
 	FString mySessionName = TEXT("Jacobyi");
@@ -69,8 +76,17 @@ public:
 	TSharedPtr<FOnlineSessionSearch> sessioinSearch;
 	void FindOtherSessions();
 
-	UFUNCTION()
 	void OnFindSessionsComplete(bool bWasSuccessful);
+
+
+	// 방에 조인하고 싶다.
+	void JoinMySession(int32 index);
+
+	void OnJoinSessionComplete(FName SessionName, EOnJoinSessionCompleteResult::Type Resurelt);
+
+
+	FString StringBase64Encode(const FString& str);
+	FString StringBase64Decode(const FString& str);
 
 
 };

@@ -8,11 +8,18 @@
 #include "Components/Slider.h"
 #include "Components/TextBlock.h"
 #include <../../../../../../../Source/Runtime/UMG/Public/Components/WidgetSwitcher.h>
+#include "RoomInfoUI.h"
+#include <../../../../../../../Source/Runtime/UMG/Public/Components/ScrollBox.h>
 
 void ULobbyWidget::NativeConstruct()
 {
 	// gi을 채우고싶다.
 	gi = Cast<UNetGameInstance>(GetWorld()->GetGameInstance());
+
+	// gi의 OnMySessionSearchCompleteDelegate에 AddRoomInfoUI를 연결하고싶다.
+	gi->OnMySessionSearchCompleteDelegate.AddDynamic(this, &ULobbyWidget::AddRoomInfoUI);
+
+
 	// 버튼을 연결하고싶다.
 	Button_CreateRoom->OnClicked.AddDynamic(this, &ULobbyWidget::OnMyClickCreateRoom);
 
@@ -57,9 +64,17 @@ void ULobbyWidget::OnMyValueChanged(float value)
 
 void ULobbyWidget::OnMyClickFindRoom()
 {
+	// gi의 FindOtherSessions를 호출하고싶다.
+	gi->FindOtherSessions();
 }
 
 void ULobbyWidget::AddRoomInfoUI(const FSessionInfo& info)
 {
+	// RoomInfoUIFactory를 이용해서 위젯을 만들고
+	auto ui = CreateWidget<URoomInfoUI>(this, RoomInfoUIFactory);
+	// info를 Setup함수를 통해 전달하고싶다.
+	ui->Setup(info);
+	// 생성한 위젯을 ScrollBox_RoomList에 붙이고싶다.
+	ScrollBox_RoomList->AddChild(ui);
 }
 
