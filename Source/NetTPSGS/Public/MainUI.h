@@ -67,4 +67,9 @@ public:
 	void SetActiveGameOverUI(bool value);
 
 	virtual void NativeConstruct() override;
+
+	virtual void NativeTick(const FGeometry& MyGeometry, float InDeltaTime) override;
+
+	UPROPERTY(EditDefaultsOnly, meta = (BindWidget))
+	class UTextBlock* Text_UserList;
 };

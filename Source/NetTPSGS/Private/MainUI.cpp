@@ -8,6 +8,10 @@
 #include <../../../../../../../Source/Runtime/UMG/Public/Components/CanvasPanel.h>
 #include "Kismet/KismetSystemLibrary.h"
 #include "NetTPSPlayerController.h"
+#include "GameFramework/GameState.h"
+#include "GameFramework/PlayerState.h"
+#include "Components/TextBlock.h"
+#include "NetGameInstance.h"
 
 void UMainUI::SetActiveCrosshair(bool value)
 {
@@ -78,7 +82,20 @@ void UMainUI::OnMyButtonRespawn()
 
 void UMainUI::OnMyButtonQuit()
 {
-	UKismetSystemLibrary::QuitGame(GetWorld(), nullptr, EQuitPreference::Quit, false);
+	//UKismetSystemLibrary::QuitGame(GetWorld(), nullptr, EQuitPreference::Quit, false);
+
+	auto* gi = Cast<UNetGameInstance>(GetWorld()->GetGameInstance());
+	if ( gi )
+	{
+		bool result = gi->sessionInterface->DestroySession(FName(*gi->mySessionName));
+
+		if ( result )
+		{
+			// 클라이언트 트래블 하고싶다.
+			auto* pc = GetWorld()->GetFirstPlayerController();
+			pc->ClientTravel("/Game/Net/Maps/LobbyMap", ETravelType::TRAVEL_Absolute);
+		}
+	}
 }
 
 void UMainUI::SetActiveGameOverUI(bool value)
@@ -88,6 +105,27 @@ void UMainUI::SetActiveGameOverUI(bool value)
 
 void UMainUI::NativeConstruct()
 {
+	Super::NativeConstruct();
+
 	ButtonRespawn->OnClicked.AddDynamic(this, &UMainUI::OnMyButtonRespawn);
 	ButtonQuit->OnClicked.AddDynamic(this, &UMainUI::OnMyButtonQuit);
 }
+
+void UMainUI::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
+{
+	Super::NativeTick(MyGeometry, InDeltaTime);
+
+	// 전체 플레이어의 리스트를 가져오고싶다.
+	TArray<TObjectPtr<APlayerState>> playerArr = GetWorld()->GetGameState()->PlayerArray;
+
+	// 그 플레이어들의 GetPlayerName()을 TEXT_Users에 보이게 하고싶다.
+	FString str;
+	for (TObjectPtr<APlayerState> ps : playerArr)
+	{
+		FString temp = FString::Printf(TEXT("%s (%d)\n"), *ps->GetPlayerName(), ps->GetScore());
+		str.Append(temp);
+	}
+	Text_UserList->SetText(FText::FromString(str));
+
+}
+

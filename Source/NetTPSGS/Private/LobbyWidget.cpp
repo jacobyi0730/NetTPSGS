@@ -17,7 +17,8 @@ void ULobbyWidget::NativeConstruct()
 	gi = Cast<UNetGameInstance>(GetWorld()->GetGameInstance());
 
 	// gi의 OnMySessionSearchCompleteDelegate에 AddRoomInfoUI를 연결하고싶다.
-	gi->OnMySessionSearchCompleteDelegate.AddDynamic(this, &ULobbyWidget::AddRoomInfoUI);
+	gi->OnMySessionSearchCompleteDelegate.AddDynamic(this, &ULobbyWidget::OnMyAddRoomInfoUI);
+	gi->OnMySessioinSearchFinishedDelegate.AddDynamic(this, &ULobbyWidget::OnMySetActiveFindingText);
 
 
 	// 버튼을 연결하고싶다.
@@ -41,13 +42,57 @@ void ULobbyWidget::OnMyClickGoMenu()
 {
 	SwitcherUI->SetActiveWidgetIndex(0);
 }
+bool ULobbyWidget::SetSessionName()
+{
+	// 해야할일!
+	// badword 체크!
+	FString str = Edit_SessionName->GetText().ToString();
+	//str = str.TrimStartAndEnd();
+	//str = str.Replace(TEXT("|"), TEXT(""));
+	//str.Split()
+	//str.Replace()
+	// 입력한 것이 없다면
+	if ( str.IsEmpty() ) {
+		return false;
+	}
+
+#pragma region BadWords
+	//TArray<FString> badWords;
+	//badWords.Add("쓰|레|기");
+	//badWords.Add("양말");
+
+	//if ( badWords.Contains(str) )
+	//{
+	//	return;
+	//}
+#pragma endregion
+
+	if ( gi )
+	{
+		gi->mySessionName = str;
+		return true;
+	}
+	return false;
+}
 void ULobbyWidget::OnMyClickGoCreateRoom()
 {
+	if ( false == SetSessionName() )
+		return;
+
 	SwitcherUI->SetActiveWidgetIndex(1);
 }
+
 void ULobbyWidget::OnMyClickGoFindRoom()
 {
+	if ( false == SetSessionName() )
+		return;
+
 	SwitcherUI->SetActiveWidgetIndex(2);
+	// 방찾기 메뉴 진입시 찾기를 시도하고싶다.
+	if ( gi )
+	{
+		gi->FindOtherSessions();
+	}
 }
 void ULobbyWidget::OnMyClickCreateRoom()
 {
@@ -64,11 +109,13 @@ void ULobbyWidget::OnMyValueChanged(float value)
 
 void ULobbyWidget::OnMyClickFindRoom()
 {
+	// 기존의 목록을 삭제하고싶다.
+	ScrollBox_RoomList->ClearChildren();
 	// gi의 FindOtherSessions를 호출하고싶다.
 	gi->FindOtherSessions();
 }
 
-void ULobbyWidget::AddRoomInfoUI(const FSessionInfo& info)
+void ULobbyWidget::OnMyAddRoomInfoUI(const FSessionInfo& info)
 {
 	// RoomInfoUIFactory를 이용해서 위젯을 만들고
 	auto ui = CreateWidget<URoomInfoUI>(this, RoomInfoUIFactory);
@@ -76,5 +123,11 @@ void ULobbyWidget::AddRoomInfoUI(const FSessionInfo& info)
 	ui->Setup(info);
 	// 생성한 위젯을 ScrollBox_RoomList에 붙이고싶다.
 	ScrollBox_RoomList->AddChild(ui);
+}
+
+void ULobbyWidget::OnMySetActiveFindingText(bool bSearching)
+{
+	TEXT_Finding->SetVisibility(bSearching ? ESlateVisibility::Visible : ESlateVisibility::Hidden);
+	Button_FindRoom->SetIsEnabled(!bSearching);
 }
 

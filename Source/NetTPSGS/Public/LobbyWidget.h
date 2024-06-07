@@ -30,8 +30,14 @@ public:
 	// Menu
 	UPROPERTY(EditDefaultsOnly, meta = (BindWidget))
 	class UButton* Button_GoCreateRoom;
+
 	UPROPERTY(EditDefaultsOnly, meta = (BindWidget))
 	class UButton* Button_GoFindRoom;
+
+	UPROPERTY(EditDefaultsOnly, meta = (BindWidget))
+	class UEditableText* Edit_SessionName;
+
+	bool SetSessionName();
 
 	UFUNCTION()
 	void OnMyClickGoCreateRoom();
@@ -77,10 +83,17 @@ public:
 	UPROPERTY(EditDefaultsOnly, meta = (BindWidget))
 	class UButton* Button_Menu_1;
 
+	UPROPERTY(EditDefaultsOnly, meta = (BindWidget))
+	class UTextBlock* TEXT_Finding;
+
+
 	UFUNCTION()
 	void OnMyClickFindRoom();
 
 	UFUNCTION()
-	void AddRoomInfoUI(const struct FSessionInfo& info);
+	void OnMyAddRoomInfoUI(const struct FSessionInfo& info);
+
+	UFUNCTION()
+	void OnMySetActiveFindingText(bool bSearching);
 
 };

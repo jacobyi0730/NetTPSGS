@@ -18,6 +18,7 @@
 #include "Net/UnrealNetwork.h"
 #include <../../../../../../../Source/Runtime/Engine/Classes/Kismet/KismetMathLibrary.h>
 #include "NetTPSPlayerController.h"
+#include "NetPlayerState.h"
 
 DEFINE_LOG_CATEGORY(LogTemplateCharacter);
 
@@ -176,6 +177,14 @@ void ANetTPSGSCharacter::BeginPlay()
 
 
 	HP = MaxHP;
+	APlayerController* pc = Cast<APlayerController>(Controller);
+	if (pc && pc->IsLocalController())
+	{
+		pc->SetInputMode(FInputModeGameOnly());
+		pc->SetShowMouseCursor(false);
+	}
+
+
 }
 
 void ANetTPSGSCharacter::PossessedBy(AController* NewController)
@@ -496,6 +505,15 @@ void ANetTPSGSCharacter::ServerRPC_Fire_Implementation()
 		auto otherPlayer = Cast<ANetTPSGSCharacter>(OutHit.GetActor());
 		if ( otherPlayer )
 		{
+			auto* ps = Cast<APlayerController>(Controller);
+			if ( ps )
+			{
+				auto* playerState = ps->GetPlayerState<ANetPlayerState>();
+				if ( playerState )
+				{
+					playerState->SetScore(playerState->GetScore() + 1);
+				}
+			}
 			otherPlayer->OnMyTakeDamage();
 		}
 	}

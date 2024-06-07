@@ -49,6 +49,7 @@ struct FSessionInfo
 
 // 방찾기 요청 후 응답이 왔을 때 호출될 델리게이트
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FSessioinSearchDelegate, const FSessionInfo&, info);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FSessioinSearchFinishedDelegate, bool, bSearching);
 
 
 UCLASS()
@@ -63,6 +64,8 @@ public:
 	IOnlineSessionPtr sessionInterface;
 
 	FSessioinSearchDelegate OnMySessionSearchCompleteDelegate;
+
+	FSessioinSearchFinishedDelegate OnMySessioinSearchFinishedDelegate;
 
 	// 방생성 요청 기능
 	void CreateMySession(FString roomName, int32 playerCount);

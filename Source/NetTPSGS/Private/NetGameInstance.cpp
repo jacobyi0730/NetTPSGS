@@ -74,6 +74,12 @@ void UNetGameInstance::OnCreateSessionComplete(FName sessionName, bool bWasSucce
 
 void UNetGameInstance::FindOtherSessions()
 {
+	// UI의 Finding...을 활성화 해달라...
+	if ( OnMySessioinSearchFinishedDelegate.IsBound() ) 
+	{
+		OnMySessioinSearchFinishedDelegate.Broadcast(true);
+	}
+
 	// 세션인터페이스를 이용해서 방을 찾고싶다.
 	sessioinSearch = MakeShareable(new FOnlineSessionSearch);
 
@@ -122,6 +128,12 @@ void UNetGameInstance::OnFindSessionsComplete(bool bWasSuccessful)
 	}
 	else {
 		UE_LOG(LogTemp, Warning, TEXT("OnFindSessionsComplete bWasSuccessful is false"));
+		// UI의 Finding...을 활성화 해달라...
+	}
+
+	if ( OnMySessioinSearchFinishedDelegate.IsBound() )
+	{
+		OnMySessioinSearchFinishedDelegate.Broadcast(false);
 	}
 }
 
