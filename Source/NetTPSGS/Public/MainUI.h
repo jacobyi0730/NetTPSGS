@@ -72,4 +72,23 @@ public:
 
 	UPROPERTY(EditDefaultsOnly, meta = (BindWidget))
 	class UTextBlock* Text_UserList;
+
+	// 채팅 : 보내는 일, 받는 일
+	UPROPERTY(EditDefaultsOnly, meta = (BindWidget))
+	class UScrollBox* ScrollMessageList;
+
+	UPROPERTY(EditDefaultsOnly, meta = (BindWidget))
+	class UEditableText* EditMessage;
+
+	UPROPERTY(EditDefaultsOnly, meta = (BindWidget))
+	class UButton* ButtonSendMsg;
+
+	UFUNCTION()
+	void OnMySendMsg();
+
+	UPROPERTY(EditDefaultsOnly)
+	TSubclassOf<class UUserWidget> ChatUIFactory;
+
+	void AddMsg(const FString& msg);
+
 };

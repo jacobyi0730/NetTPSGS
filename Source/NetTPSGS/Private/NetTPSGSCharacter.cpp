@@ -97,7 +97,7 @@ void ANetTPSGSCharacter::Tick(float DeltaSeconds)
 	PrintNetInfo();
 
 	testNetMode = GetNetMode() == ENetMode::NM_ListenServer ? TEXT("Server") : TEXT("Client");
-	
+
 	// UI에 반영
 	if ( MainUI ) {
 		MainUI->UpdateHPBar((float)_HP / MaxHP);
@@ -160,7 +160,7 @@ void ANetTPSGSCharacter::BeginPlay()
 	UGameplayStatics::GetAllActorsOfClassWithTag(GetWorld(), AActor::StaticClass(), TEXT("Pistol"), PistolList);
 
 	// 만약 로컬이고 서버가 아니라면
-	if (false == HasAuthority())
+	if ( false == HasAuthority() )
 	{
 		InitMainUI();
 	}
@@ -178,7 +178,7 @@ void ANetTPSGSCharacter::BeginPlay()
 
 	HP = MaxHP;
 	APlayerController* pc = Cast<APlayerController>(Controller);
-	if (pc && pc->IsLocalController())
+	if ( pc && pc->IsLocalController() )
 	{
 		pc->SetInputMode(FInputModeGameOnly());
 		pc->SetShowMouseCursor(false);
@@ -227,6 +227,10 @@ void ANetTPSGSCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputC
 		EnhancedInputComponent->BindAction(IA_Fire, ETriggerEvent::Started, this, &ANetTPSGSCharacter::OnIAFire);
 
 		EnhancedInputComponent->BindAction(IA_Reload, ETriggerEvent::Started, this, &ANetTPSGSCharacter::OnIAReload);
+
+		EnhancedInputComponent->BindAction(IA_Voice, ETriggerEvent::Started, this, &ANetTPSGSCharacter::OnIAVoice);
+
+		EnhancedInputComponent->BindAction(IA_Chat, ETriggerEvent::Started, this, &ANetTPSGSCharacter::OnIAChat);
 	}
 	else
 	{
@@ -371,7 +375,7 @@ void ANetTPSGSCharacter::InitMainUI()
 			pc->MainUI = Cast<UMainUI>(CreateWidget(GetWorld(), MainUIFactory));
 			pc->MainUI->AddToViewport();
 		}
-		
+
 		MainUI = pc->MainUI;
 
 		MainUI->SetActiveCrosshair(false);
@@ -602,6 +606,56 @@ void ANetTPSGSCharacter::PrepareDie()
 			pc->SetShowMouseCursor(true);
 			MainUI->SetActiveGameOverUI(true);
 		}
+	}
+}
+
+void ANetTPSGSCharacter::OnIAVoice(const FInputActionValue& value)
+{
+	bVoiceEnabled = !bVoiceEnabled;
+	if ( bVoiceEnabled )
+	{
+		GetController<ANetTPSPlayerController>()->StartTalking();
+	}
+	else
+	{
+		GetController<ANetTPSPlayerController>()->StopTalking();
+	}
+}
+
+void ANetTPSGSCharacter::ServerRPC_SendMsg_Implementation(const FString& msg)
+{
+	MultiRPC_SendMsg(msg);
+}
+
+void ANetTPSGSCharacter::MultiRPC_SendMsg_Implementation(const FString& msg)
+{
+	// 로컬플레이어 컨트롤러를 가져와서 MainUI의 AddMsg를 호출하고싶다.
+	auto* pc = Cast<ANetTPSPlayerController>(GetWorld()->GetFirstPlayerController());
+	if ( pc )
+	{
+		pc->MainUI->AddMsg(msg);
+	}
+}
+
+void ANetTPSGSCharacter::OnIAChat(const FInputActionValue& value)
+{
+	auto* pc = Cast<ANetTPSPlayerController>(GetWorld()->GetFirstPlayerController());
+	if ( nullptr == pc )
+	{
+		return;
+	}
+
+	bChatEnabled = !bChatEnabled;
+
+	if ( bChatEnabled )
+	{
+		pc->SetInputMode(FInputModeGameAndUI());
+		pc->SetShowMouseCursor(true);
+	}
+	else
+	{
+		pc->SetInputMode(FInputModeGameOnly());
+		pc->SetShowMouseCursor(false);
 	}
 }
 

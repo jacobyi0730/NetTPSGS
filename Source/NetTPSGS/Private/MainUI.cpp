@@ -12,6 +12,10 @@
 #include "GameFramework/PlayerState.h"
 #include "Components/TextBlock.h"
 #include "NetGameInstance.h"
+#include <../../../../../../../Source/Runtime/UMG/Public/Components/EditableText.h>
+#include "NetTPSGSCharacter.h"
+#include "ChatWidget.h"
+#include <../../../../../../../Source/Runtime/UMG/Public/Components/ScrollBox.h>
 
 void UMainUI::SetActiveCrosshair(bool value)
 {
@@ -109,6 +113,7 @@ void UMainUI::NativeConstruct()
 
 	ButtonRespawn->OnClicked.AddDynamic(this, &UMainUI::OnMyButtonRespawn);
 	ButtonQuit->OnClicked.AddDynamic(this, &UMainUI::OnMyButtonQuit);
+	ButtonSendMsg->OnClicked.AddDynamic(this, &UMainUI::OnMySendMsg);
 }
 
 void UMainUI::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
@@ -127,5 +132,33 @@ void UMainUI::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
 	}
 	Text_UserList->SetText(FText::FromString(str));
 
+}
+
+void UMainUI::OnMySendMsg()
+{
+	FString msg = EditMessage->GetText().ToString();
+	if (msg.IsEmpty())
+		return;
+
+	msg = msg.Replace(TEXT("쓰레기"), TEXT("***"));
+	
+	auto* pc = Cast<ANetTPSPlayerController>(GetWorld()->GetFirstPlayerController());
+	if ( pc )
+	{
+		auto* player = Cast<ANetTPSGSCharacter>(pc->GetPawn());
+		if ( player )
+		{
+			player->ServerRPC_SendMsg(msg);
+		}
+	}
+
+}
+
+void UMainUI::AddMsg(const FString& msg)
+{
+	auto* chat = CreateWidget<UChatWidget>(this, ChatUIFactory);
+	chat->Text_Message->SetText(FText::FromString(msg));
+	ScrollMessageList->AddChild(chat);
+	ScrollMessageList->ScrollToEnd();
 }
 

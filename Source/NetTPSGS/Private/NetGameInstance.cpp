@@ -84,13 +84,13 @@ void UNetGameInstance::FindOtherSessions()
 	sessioinSearch = MakeShareable(new FOnlineSessionSearch);
 
 	// 검색 조건을 설정하고 싶다.
-	sessioinSearch->QuerySettings.Set(SEARCH_PRESENCE, true, EOnlineComparisonOp::Equals);
+	sessioinSearch->QuerySettings.Set(SEARCH_PRESENCE, true, EOnlineComparisonOp::Near);
 
 	// LAN 여부
 	sessioinSearch->bIsLanQuery = IOnlineSubsystem::Get()->GetSubsystemName() == "NULL";
 
 	// 최대 검색 수 
-	sessioinSearch->MaxSearchResults = 10;
+	sessioinSearch->MaxSearchResults = 30;
 
 	sessionInterface->FindSessions(0, sessioinSearch.ToSharedRef());
 }

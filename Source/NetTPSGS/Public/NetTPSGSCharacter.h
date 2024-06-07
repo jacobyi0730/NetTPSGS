@@ -229,8 +229,28 @@ public:
 	// 이동 Off
 	// UI -> 리스폰
 
+	// 음성채팅 처리하고싶다.
+	bool bVoiceEnabled = false;
+	UPROPERTY(EditDefaultsOnly, Category = Input)
+	class UInputAction* IA_Voice;
+
+	UFUNCTION()
+	void OnIAVoice(const FInputActionValue& value);
 
 
+	// 진짜 채팅 기능 구현하고싶다.
+	// 서버로 요청, 응답
+	UFUNCTION(Server, Reliable)
+	void ServerRPC_SendMsg(const FString& msg);
+	UFUNCTION(NetMulticast, Reliable)
+	void MultiRPC_SendMsg(const FString& msg);
+
+	bool bChatEnabled = false;
+	UPROPERTY(EditDefaultsOnly, Category = Input)
+	class UInputAction* IA_Chat;
+
+	UFUNCTION()
+	void OnIAChat(const FInputActionValue& value);
 
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
