@@ -16,6 +16,7 @@
 #include "NetTPSGSCharacter.h"
 #include "ChatWidget.h"
 #include <../../../../../../../Source/Runtime/UMG/Public/Components/ScrollBox.h>
+#include "NetPlayerState.h"
 
 void UMainUI::SetActiveCrosshair(bool value)
 {
@@ -123,11 +124,21 @@ void UMainUI::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
 	// 전체 플레이어의 리스트를 가져오고싶다.
 	TArray<TObjectPtr<APlayerState>> playerArr = GetWorld()->GetGameState()->PlayerArray;
 
+	if ( playerArr[1]->GetPlayerController() == GetWorld()->GetFirstPlayerController() )
+	{
+
+	}
+
+
 	// 그 플레이어들의 GetPlayerName()을 TEXT_Users에 보이게 하고싶다.
 	FString str;
 	for (TObjectPtr<APlayerState> ps : playerArr)
 	{
-		FString temp = FString::Printf(TEXT("%s (%d)\n"), *ps->GetPlayerName(), ps->GetScore());
+		auto* netPS = Cast<ANetPlayerState>(ps);
+		if ( nullptr == netPS )
+			continue;
+
+		FString temp = FString::Printf(TEXT("%s (%d)\n"), *netPS->GetPlayerName(), (int32)netPS->GetScore());
 		str.Append(temp);
 	}
 	Text_UserList->SetText(FText::FromString(str));

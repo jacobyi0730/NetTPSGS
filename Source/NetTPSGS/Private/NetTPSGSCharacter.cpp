@@ -509,14 +509,10 @@ void ANetTPSGSCharacter::ServerRPC_Fire_Implementation()
 		auto otherPlayer = Cast<ANetTPSGSCharacter>(OutHit.GetActor());
 		if ( otherPlayer )
 		{
-			auto* ps = Cast<APlayerController>(Controller);
-			if ( ps )
+			auto* playerState = GetPlayerState<ANetPlayerState>();
+			if ( playerState )
 			{
-				auto* playerState = ps->GetPlayerState<ANetPlayerState>();
-				if ( playerState )
-				{
-					playerState->SetScore(playerState->GetScore() + 1);
-				}
+				playerState->SetScore(playerState->GetScore() + 1);
 			}
 			otherPlayer->OnMyTakeDamage();
 		}
