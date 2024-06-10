@@ -21,6 +21,8 @@ void UNetGameInstance::Init()
 		sessionInterface->OnFindSessionsCompleteDelegates.AddUObject(this, &UNetGameInstance::OnFindSessionsComplete);
 
 		sessionInterface->OnJoinSessionCompleteDelegates.AddUObject(this, &UNetGameInstance::OnJoinSessionComplete);
+
+		sessionInterface->OnDestroySessionCompleteDelegates.AddUObject(this, &UNetGameInstance::OnMyExitRoomComplete);
 	}
 
 	//FTimerHandle h;
@@ -158,6 +160,37 @@ void UNetGameInstance::OnJoinSessionComplete(FName SessionName, EOnJoinSessionCo
 		}
 	}
 }
+
+void UNetGameInstance::ExitRoom()
+{
+	ServerExitRoom();
+}
+
+void UNetGameInstance::ServerExitRoom_Implementation()
+{
+	MultiExitRoom();
+}
+
+void UNetGameInstance::MultiExitRoom_Implementation()
+{
+	sessionInterface->DestroySession(FName(*mySessionName));
+}
+
+void UNetGameInstance::OnMyExitRoomComplete(FName sessionName, bool bWasSuccessful)
+{
+	// 플레이어는 LobbyMap으로 여행을 떠나고싶다.
+	auto* pc = GetWorld()->GetFirstPlayerController();
+	FString url = TEXT("/Game/Net/Maps/LobbyMap");
+	pc->ClientTravel(url, TRAVEL_Absolute);
+}
+
+bool UNetGameInstance::IsInRoom()
+{
+	FUniqueNetIdPtr netID = GetWorld()->GetFirstLocalPlayerFromController()->GetUniqueNetIdForPlatformUser().GetUniqueNetId();
+
+	return sessionInterface->IsPlayerInSession(FName(*mySessionName), *netID);
+}
+
 
 FString UNetGameInstance::StringBase64Encode(const FString& str)
 {

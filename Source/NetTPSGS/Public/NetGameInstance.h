@@ -87,9 +87,19 @@ public:
 
 	void OnJoinSessionComplete(FName SessionName, EOnJoinSessionCompleteResult::Type Resurelt);
 
+	void ExitRoom();
+
+	bool IsInRoom();
+
+	UFUNCTION(Server, Reliable)
+	void ServerExitRoom();
+
+	UFUNCTION(NetMulticast, Reliable)
+	void MultiExitRoom();
+
+	void OnMyExitRoomComplete(FName sessionName, bool bWasSuccessful);
 
 	FString StringBase64Encode(const FString& str);
 	FString StringBase64Decode(const FString& str);
-
 
 };

@@ -7,6 +7,7 @@
 #include <../../../../../../../Source/Runtime/Engine/Public/EngineUtils.h>
 #include "NetTPSGSCharacter.h"
 #include "Net/UnrealNetwork.h"
+#include "NetGameInstance.h"
 
 // Sets default values
 ANetTestActor::ANetTestActor()
@@ -35,11 +36,15 @@ void ANetTestActor::BeginPlay()
 	{
 		// 타이머를 실행하고싶다.
 		FTimerHandle handle;
-		GetWorld()->GetTimerManager().SetTimer(handle, [&]() {
+		auto gi = GetGameInstance<UNetGameInstance>();
+		GetWorld()->GetTimerManager().SetTimer(handle, [&, gi]() {
 			// 1초마다 MatColor를 랜덤으로 결정하고싶다.
 			//MatColor = FLinearColor::MakeRandomColor();
 			//OnRep_MatColor();
-			ServerRPC_ChangeColor(FLinearColor::MakeRandomColor());
+			if ( gi->IsInRoom() )
+			{
+				ServerRPC_ChangeColor(FLinearColor::MakeRandomColor());
+			}
 		}, 1, true);
 	}
 }

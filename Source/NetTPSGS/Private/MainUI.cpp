@@ -92,14 +92,7 @@ void UMainUI::OnMyButtonQuit()
 	auto* gi = Cast<UNetGameInstance>(GetWorld()->GetGameInstance());
 	if ( gi )
 	{
-		bool result = gi->sessionInterface->DestroySession(FName(*gi->mySessionName));
-
-		if ( result )
-		{
-			// 클라이언트 트래블 하고싶다.
-			auto* pc = GetWorld()->GetFirstPlayerController();
-			pc->ClientTravel("/Game/Net/Maps/LobbyMap", ETravelType::TRAVEL_Absolute);
-		}
+		gi->ExitRoom();
 	}
 }
 
