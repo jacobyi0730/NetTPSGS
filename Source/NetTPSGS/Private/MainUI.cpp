@@ -124,12 +124,6 @@ void UMainUI::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
 	// 전체 플레이어의 리스트를 가져오고싶다.
 	TArray<TObjectPtr<APlayerState>> playerArr = GetWorld()->GetGameState()->PlayerArray;
 
-	if ( playerArr[1]->GetPlayerController() == GetWorld()->GetFirstPlayerController() )
-	{
-
-	}
-
-
 	// 그 플레이어들의 GetPlayerName()을 TEXT_Users에 보이게 하고싶다.
 	FString str;
 	for (TObjectPtr<APlayerState> ps : playerArr)
